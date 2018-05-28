@@ -6,14 +6,13 @@ import java.awt.image.BufferedImage;
 import kr.ac.cau.mecs.lenerd.chess.*;
 import kr.ac.cau.mecs.lenerd.chess.ChessPieceSprite.ChessPieceSpriteType;
 
-public class ChessBoard2 implements ChessBoard {
-	public JPanel board = new JPanel();
+public class ChessBoard1 extends JPanel {
 	JButton[][] cells = new JButton[8][8];
 	
-	public ChessBoard2() {
+	public ChessBoard1() {
 		//initialize board
-		board.setSize(800, 800);
-	    board.setLayout(new GridLayout(8,8));
+		setSize(800, 800);
+	    setLayout(new GridLayout(8,8));
 		
 		//initialize cells
 		for(int i=0; i<8; i++) {
@@ -27,7 +26,7 @@ public class ChessBoard2 implements ChessBoard {
 	    		}
 	    		cells[i][j].setOpaque(true);
     			cells[i][j].setBorderPainted(false);
-	    		board.add(cells[i][j]);
+	    		add(cells[i][j]);
 	    	}
 	    }
 	}
