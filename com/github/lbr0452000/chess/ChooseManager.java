@@ -17,7 +17,7 @@ public class ChooseManager extends JFrame {
 	public ChooseManager() {
 		super();
 		
-	    setSize(800, 800);
+	    setSize(400, 300);
 	    setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
 	    setLocationRelativeTo(null);
 	    
@@ -30,7 +30,7 @@ public class ChooseManager extends JFrame {
 		add(mode1);
 		add(mode2);
 		
-		setLayout(new FlowLayout(FlowLayout.CENTER, 0, 300));
+		setLayout(new FlowLayout(FlowLayout.CENTER, 0, 150));
 		setVisible(true);
 
 	}
