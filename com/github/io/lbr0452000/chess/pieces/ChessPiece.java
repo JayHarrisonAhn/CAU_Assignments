@@ -4,5 +4,5 @@ import java.awt.Color;
 
 public class ChessPiece {
 	public String name;
-	Color team;
+	public Color team;
 }

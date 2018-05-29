@@ -24,6 +24,8 @@ public class ChessBoard1 extends JPanel {
 	    		else {
 	    			cells[i][j].setBackground(Color.GRAY);
 	    		}
+	    		cells[i][j].position.x = i;
+	    		cells[i][j].position.y = j;
 	    		cells[i][j].setOpaque(true);
     			cells[i][j].setBorderPainted(false);
 	    		add(cells[i][j]);
@@ -36,10 +38,10 @@ public class ChessBoard1 extends JPanel {
 	public void putPieces() {
 		//폰 놓기
 		for(int i=0;i<8;i++) {
-			cells[1][i].piece = new Pawn(Color.BLACK);
+			cells[1][i].piece = new Pawn(Color.GREEN);
 		}
 		for(int i=0;i<8;i++) {
-			cells[6][i].piece = new Pawn(Color.WHITE);
+			cells[6][i].piece = new Pawn(Color.BLUE);
 		}
 	}
 	
@@ -48,6 +50,7 @@ public class ChessBoard1 extends JPanel {
 	    	for(int j=0; j<8; j++) {
 	    		if(cells[i][j].piece!=null) {
 	    			cells[i][j].setText(cells[i][j].piece.name);
+	    			cells[i][j].setForeground(cells[i][j].piece.team);
 	    		}
 	    		
 	    	}
