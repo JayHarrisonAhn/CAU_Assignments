@@ -1,5 +1,6 @@
 package com.github.lbr0452000.chess;
 
+import java.awt.Color;
 import java.awt.FlowLayout;
 import java.awt.GridLayout;
 import java.awt.event.ActionEvent;
@@ -10,12 +11,13 @@ import javax.swing.*;
 import com.github.io.lbr0452000.chess.pieces.ChessPiece;
 import com.github.lbr0452000.chess.panels.ChessBoard1;
 import com.github.lbr0452000.chess.panels.ChessBoardCell;
+import com.github.lbr0452000.chess.panels.Position;
 
 public class Game1Manager extends JFrame implements ActionListener{
 
 	private ChessBoard1 board = new ChessBoard1();
 	
-	ChessBoardCell onHand;
+	ChessPiece onHand;
 	
 	public Game1Manager() {
 		setSize(800, 800);
@@ -41,11 +43,28 @@ public class Game1Manager extends JFrame implements ActionListener{
 	@Override
 	public void actionPerformed(ActionEvent e) {
 		// TODO Auto-generated method stub
-		onHand = (ChessBoardCell) e.getSource();
-		System.out.print("(");
-		System.out.print(onHand.position.x);
-		System.out.print(",");
-		System.out.print(onHand.position.y);
-		System.out.println(")");
+		ChessBoardCell selected = (ChessBoardCell) e.getSource();
+		
+		
+		if(onHand != null) {//손에 들고있을 상
+			selected.piece = onHand;
+			onHand = null;
+			board.refresh();
+		}
+		else {
+			onHand = selected.piece;
+			System.out.print(selected.position.x);
+			System.out.print(",");
+			System.out.println(selected.position.y);
+			
+			selected.piece = null;
+			selected.setBackground(Color.YELLOW);
+		}
+		
+		
+	}
+	
+	void move(Position from, Position to) {
+		
 	}
 }

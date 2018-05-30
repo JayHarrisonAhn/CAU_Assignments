@@ -18,12 +18,7 @@ public class ChessBoard1 extends JPanel {
 		for(int i=0; i<8; i++) {
 	    	for(int j=0; j<8; j++) {
 	    		cells[i][j] = new ChessBoardCell();
-	    		if(((i+j)%2)==0) {
-	    			cells[i][j].setBackground(Color.WHITE);
-	    		}
-	    		else {
-	    			cells[i][j].setBackground(Color.GRAY);
-	    		}
+	    		
 	    		cells[i][j].position.x = i;
 	    		cells[i][j].position.y = j;
 	    		cells[i][j].setOpaque(true);
@@ -48,9 +43,18 @@ public class ChessBoard1 extends JPanel {
 	public void refresh() {
 		for(int i=0; i<8; i++) {
 	    	for(int j=0; j<8; j++) {
+	    		if(((i+j)%2)==0) {
+	    			cells[i][j].setBackground(Color.WHITE);
+	    		}
+	    		else {
+	    			cells[i][j].setBackground(Color.GRAY);
+	    		}
 	    		if(cells[i][j].piece!=null) {
 	    			cells[i][j].setText(cells[i][j].piece.name);
 	    			cells[i][j].setForeground(cells[i][j].piece.team);
+	    		}
+	    		else {
+	    			cells[i][j].setText(null);
 	    		}
 	    		
 	    	}

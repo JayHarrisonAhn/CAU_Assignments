@@ -8,6 +8,6 @@ import com.github.io.lbr0452000.chess.pieces.ChessPiece;
 import com.github.lbr0452000.chess.Game1Manager;
 
 public class ChessBoardCell extends JButton {
-	ChessPiece piece = null;
+	public ChessPiece piece = null;
 	public Position position = new Position();
 }
