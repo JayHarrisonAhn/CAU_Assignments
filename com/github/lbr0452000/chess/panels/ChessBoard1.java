@@ -7,7 +7,7 @@ import java.awt.Color;
 import java.awt.GridLayout;
 
 public class ChessBoard1 extends JPanel {
-	ChessBoardCell[][] cells = new ChessBoardCell[8][8];
+	public ChessBoardCell[][] cells = new ChessBoardCell[8][8];
 	
 	public ChessBoard1() {
 		//initialize board
