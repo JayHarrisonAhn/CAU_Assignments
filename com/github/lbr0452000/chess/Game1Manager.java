@@ -38,14 +38,13 @@ public class Game1Manager extends JFrame implements ActionListener{//Game1Manage
 	@Override
 	public void actionPerformed(ActionEvent e) {
 		ChessBoardCell selected = (ChessBoardCell) e.getSource();//selected라는 레퍼런스 선언(현재 버튼이 눌린 ChessBoardCell을 갖는다)  
-		if(selected.piece == null) {		//TODO : 아무것도 없는 칸을 선택했을 경우
-			
-		}
-		
 		if(onHand != null) {			//손(onHand)에 무언가 들고있을 상황 
 			selected.piece = onHand;	// onHand에 있는 ChessPiece를 selected.piece에 집어넣는다.
 			onHand = null;				//onHand를 비운다. 
 			board.refresh();			//board를 새로 띄운다(새로고침)
+		}
+		else if(selected.piece == null) {		//아무것도 없는 칸을 선택했을 경우
+			
 		}
 		else {//손(onHand)에 아무것도 들고있지 않은 상황 
 			onHand = selected.piece;//선택된 칸의 piece를 손(onHand)에 넣는다. 
