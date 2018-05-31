@@ -42,7 +42,7 @@ public class Game1Manager extends JFrame implements ActionListener{//Game1Manage
 			onHand = null;				//onHand를 비운다. 
 			board.refresh();			//board를 새로 띄운다(새로고침)
 		}
-		else if(selected.piece == null) {		//아무것도 없는 칸을 선택했을 경우
+		else if(selected.piece == null) {		//아무것도 없는 칸을 선택했을 경우에는 아무것도 안하고 지나간다.
 			
 		}
 		else {//손(onHand)에 아무것도 들고있지 않은 상황 
