@@ -7,6 +7,8 @@ import java.awt.Color;
 import java.awt.GridLayout;
 
 public class ChessBoard1 extends JPanel {
+	public Color team1 = Color.BLACK;
+	public Color team2 = Color.GRAY;
 	public ChessBoardCell[][] cells = new ChessBoardCell[8][8];
 	
 	public ChessBoard1() {
@@ -31,8 +33,7 @@ public class ChessBoard1 extends JPanel {
 	}
 	
 	public void putPieces() {
-		Color team1 = Color.BLACK;
-		Color team2 = Color.GRAY;
+		
 		//폰 놓기
 		for(int i=0;i<8;i++) {
 			cells[1][i].piece = new Pawn(team1);
