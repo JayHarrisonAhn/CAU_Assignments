@@ -31,7 +31,6 @@ public class Game1Manager extends JFrame implements ActionListener{//Game1Manage
 				board.cells[i][j].addActionListener(this);
 			}
 		}
-		
 		setVisible(true);
 	}
 
@@ -59,7 +58,19 @@ public class Game1Manager extends JFrame implements ActionListener{//Game1Manage
 		
 	}
 	
-	void move(Position from, Position to) {//TODO
-		
+	boolean isValidMove(Position from, Position to) {//TODO : from에서 to로의 이동이 가능한 것인지 판단하는 메서드 
+		return true;//개발되기 전까지는 항상 true를 리턴하게끔 만들어주세요 
+	}
+	
+	Position[] validMoves(Position from) {//TODO : from에서 이동이 가능한 모든 칸의 배열을 리턴하는 메서드 
+		return new Position[0];//개발되기 전까지는 항상 이것을 리턴하게끔 만들어주세요 
+	}
+	
+	boolean isCheckmate() {//TODO : 체크메이트 상황인지 판단해주는 메서드  
+		return false;//개발되기 전까지는 항상 false를 리턴하게끔 만들어주세요 
+	}
+	
+	boolean isStalemate() {//TODO : Stalemate 상황인지 판단해주는 메서
+		return false;//개발되기 전까지는 항상 false를 리턴하게끔 만들어주세요 
 	}
 }
