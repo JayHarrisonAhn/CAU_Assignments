@@ -36,21 +36,21 @@ public class ChessBoard1 extends JPanel {
 			cells[1][i].piece = new Pawn(Color.BLACK);
 		}
 		for(int i=0;i<8;i++) {
-			cells[6][i].piece = new Pawn(Color.WHITE);
+			cells[6][i].piece = new Pawn(Color.GRAY);
 		}
 		
 		//비숍 놓기 
 		cells[0][2].piece = new Bishop(Color.BLACK);
 		cells[0][5].piece = new Bishop(Color.BLACK);
-		cells[7][2].piece = new Bishop(Color.WHITE);
-		cells[7][5].piece = new Bishop(Color.WHITE);
+		cells[7][2].piece = new Bishop(Color.GRAY);
+		cells[7][5].piece = new Bishop(Color.GRAY);
 	}
 	
 	public void refresh() {
 		for(int i=0; i<8; i++) {
 	    	for(int j=0; j<8; j++) {
 	    		if(((i+j)%2)==0) {
-	    			cells[i][j].setBackground(Color.GRAY);
+	    			cells[i][j].setBackground(Color.WHITE);
 	    		}
 	    		else {
 	    			cells[i][j].setBackground(Color.DARK_GRAY);
