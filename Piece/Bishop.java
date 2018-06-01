@@ -1,4 +1,5 @@
 package Piece;
+
 import java.awt.*;
 
 public class Bishop extends ChessPiece{

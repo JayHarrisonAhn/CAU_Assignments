@@ -1,5 +1,6 @@
 package Piece;
 
+
 import java.awt.Color;
 
 public class King extends ChessPiece{
