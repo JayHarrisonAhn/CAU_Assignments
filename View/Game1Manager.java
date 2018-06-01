@@ -11,7 +11,7 @@ import java.awt.event.MouseListener;
 public class Game1Manager extends JFrame implements MouseListener {
 
 	private ChessBoard1 board = new ChessBoard1();
-	
+	private int turn = 0;
 	ChessPiece onHand;
 	
 	public Game1Manager() {
@@ -47,7 +47,7 @@ public class Game1Manager extends JFrame implements MouseListener {
 	public void mouseReleased(MouseEvent e) {	//mouseClicked는 가끔 인식이 안될 때가 있어서 mouseReleased로 구현합니다.
 		ChessBoardCell selected = (ChessBoardCell) e.getSource();
 		
-		if(onHand != null) {//손에 들고있을 상
+		if(onHand != null) {//손에 들고있을 상황
 			selected.piece = onHand;
 			onHand = null;
 			board.refresh();
@@ -55,10 +55,15 @@ public class Game1Manager extends JFrame implements MouseListener {
 		else if(selected.piece == null) {		//아무것도 없는 칸을 선택했을 경우에는 아무것도 안하고 지나간다.
 		}
 		else {
-			onHand = selected.piece;
-			selected.piece = null;
-			selected.setBackground(Color.YELLOW);
-			System.out.println("온핸드에 올림");
+			if(turn == selected.piece.team) {
+				onHand = selected.piece;
+				selected.piece = null;
+				selected.setBackground(Color.YELLOW);
+				turn = (turn+1)%2;
+				System.out.println("온핸드에 올림"+turn);
+				
+			}
+			
 		}
 	}
 	

@@ -31,17 +31,17 @@ public class ChessBoard1 extends ChessBoard {
 	}
 	
 	public void putPieces() {
-		//폰 놓기
-		cells[0][0].piece = new Rook(1, Color.BLACK, BLACK_ROOK);
-		cells[0][7].piece = new Rook(1, Color.BLACK, BLACK_ROOK);
-		cells[0][1].piece = new Knight(1, Color.BLACK, BLACK_KNIGHT);
-		cells[0][6].piece = new Knight(1, Color.BLACK, BLACK_KNIGHT);
-		cells[0][2].piece = new Bishop(1, Color.BLACK, BLACK_BISHOP);
-		cells[0][5].piece = new Bishop(1, Color.BLACK, BLACK_BISHOP);
-		cells[0][3].piece = new King(1, Color.BLACK, BLACK_KING);
-		cells[0][4].piece = new Queen(1, Color.BLACK, BLACK_QUEEN);
+		//말 놓기 : BLACK은 0, WHITE는 1
+		cells[0][0].piece = new Rook(0, Color.BLACK, BLACK_ROOK);
+		cells[0][7].piece = new Rook(0, Color.BLACK, BLACK_ROOK);
+		cells[0][1].piece = new Knight(0, Color.BLACK, BLACK_KNIGHT);
+		cells[0][6].piece = new Knight(0, Color.BLACK, BLACK_KNIGHT);
+		cells[0][2].piece = new Bishop(0, Color.BLACK, BLACK_BISHOP);
+		cells[0][5].piece = new Bishop(0, Color.BLACK, BLACK_BISHOP);
+		cells[0][3].piece = new King(0, Color.BLACK, BLACK_KING);
+		cells[0][4].piece = new Queen(0, Color.BLACK, BLACK_QUEEN);
 		for (int i = 0; i < 8; i++) {
-			cells[1][i].piece = new Pawn(1, Color.BLACK, BLACK_PAWN);
+			cells[1][i].piece = new Pawn(0, Color.BLACK, BLACK_PAWN);
 		}
 		cells[7][0].piece = new Rook(1, Color.WHITE, WHITE_ROOK);
 		cells[7][7].piece = new Rook(1, Color.WHITE, WHITE_ROOK);
@@ -52,7 +52,7 @@ public class ChessBoard1 extends ChessBoard {
 		cells[7][3].piece = new King(1, Color.WHITE, WHITE_KING);
 		cells[7][4].piece = new Queen(1, Color.WHITE, WHITE_QUEEN);
 		for (int i = 0; i < 8; i++) {
-			cells[6][i].piece = new Pawn(2, Color.WHITE, WHITE_PAWN);
+			cells[6][i].piece = new Pawn(1, Color.WHITE, WHITE_PAWN);
 		}
 	}
 	
