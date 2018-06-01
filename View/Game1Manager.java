@@ -9,8 +9,10 @@ import javax.swing.*;
 import java.awt.*;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
+import java.awt.event.MouseEvent;
+import java.awt.event.MouseListener;
 
-public class Game1Manager extends JFrame implements ActionListener{
+public class Game1Manager extends JFrame implements MouseListener {
 
 	private ChessBoard1 board = new ChessBoard1();
 	
@@ -26,14 +28,22 @@ public class Game1Manager extends JFrame implements ActionListener{
 		
 		for(int i=0;i<8;i++) {
 			for(int j=0;j<8;j++) {
-				board.cells[i][j].addActionListener(this);
+				board.cells[i][j].addMouseListener(this);
 			}
 		}
 		setVisible(true);
 	}
 
 	@Override
-	public void actionPerformed(ActionEvent e) {
+	public void mouseClicked(MouseEvent e) {
+	}
+
+	@Override
+	public void mousePressed(MouseEvent e) {
+	}
+
+	@Override
+	public void mouseReleased(MouseEvent e) {
 		ChessBoardCell selected = (ChessBoardCell) e.getSource();
 		
 		if(onHand != null) {//손에 들고있을 상
@@ -48,10 +58,15 @@ public class Game1Manager extends JFrame implements ActionListener{
 			onHand = selected.piece;
 			selected.piece = null;
 			selected.setBackground(Color.YELLOW);
+			System.out.println("온핸드에 올림");
 		}
 	}
-	
-	void move(Position from, Position to) {
-		
+
+	@Override
+	public void mouseEntered(MouseEvent e) {
+	}
+
+	@Override
+	public void mouseExited(MouseEvent e) {
 	}
 }

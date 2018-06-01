@@ -23,7 +23,7 @@ public class ChessBoard1 extends JPanel {
 	    		cells[i][j].position.x = i;
 	    		cells[i][j].position.y = j;
 	    		cells[i][j].setOpaque(true);
-    			cells[i][j].setBorderPainted(false);
+//    			cells[i][j].setBorderPainted(false);
 	    		add(cells[i][j]);
 	    	}
 	    }
