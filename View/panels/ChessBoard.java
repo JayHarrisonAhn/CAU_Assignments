@@ -3,8 +3,9 @@ package View.panels;
 import javax.swing.JButton;
 import javax.swing.JPanel;
 
-public interface ChessBoard {
-	JPanel board = new JPanel();
-	JButton[][] cells = new JButton[8][8];
-	public JPanel showBoard();
+public abstract class ChessBoard extends JPanel {
+	public ChessBoardCell[][] cells;
+	
+	public abstract void putPieces();
+	public abstract void refresh();
 }

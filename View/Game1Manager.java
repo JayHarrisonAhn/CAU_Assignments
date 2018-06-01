@@ -1,14 +1,10 @@
 package View;
 
 import Piece.ChessPiece;
-import View.panels.ChessBoard1;
-import View.panels.ChessBoardCell;
-import View.panels.Position;
+import View.panels.*;
 
 import javax.swing.*;
 import java.awt.*;
-import java.awt.event.ActionEvent;
-import java.awt.event.ActionListener;
 import java.awt.event.MouseEvent;
 import java.awt.event.MouseListener;
 

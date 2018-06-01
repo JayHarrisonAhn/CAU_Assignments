@@ -2,6 +2,7 @@ package View.panels;
 
 import Piece.ChessPiece;
 
+import java.awt.BorderLayout;
 import java.awt.event.ActionListener;
 
 import javax.swing.ImageIcon;
@@ -12,6 +13,7 @@ public class ChessBoardCell extends JPanel {
 	JLabel label = new JLabel();
 	public ChessPiece piece = null;
 	public Position position = new Position();
+	public boolean use = true;
 	
 	public void setIcon(ImageIcon icon) {
 		if (icon != null) {//icon이 왔을때 

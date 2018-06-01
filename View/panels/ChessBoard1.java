@@ -7,7 +7,7 @@ import java.awt.*;
 
 import static Piece.ChessPieceSprite.ChessPieceSpriteType.*;
 
-public class ChessBoard1 extends JPanel {
+public class ChessBoard1 extends ChessBoard {
 	public ChessBoardCell[][] cells = new ChessBoardCell[8][8];
 	
 	public ChessBoard1() {
@@ -23,7 +23,6 @@ public class ChessBoard1 extends JPanel {
 	    		cells[i][j].position.x = i;
 	    		cells[i][j].position.y = j;
 	    		cells[i][j].setOpaque(true);
-//    			cells[i][j].setBorderPainted(false);
 	    		add(cells[i][j]);
 	    	}
 	    }

@@ -47,6 +47,8 @@ public class ChooseManager extends JFrame {
 		public void actionPerformed(ActionEvent e) {
 			// TODO Auto-generated method stub
 			System.out.println("2대2모드 실행");
+			dispose();
+			new Game2Manager();
 		}
 	}
 	private class ExitMode implements ActionListener{
