@@ -1,14 +1,12 @@
-package kr.ac.cau.mecs.lenerd.chess;
+package Piece;
 
-import java.awt.Graphics;
+import javax.imageio.ImageIO;
+import java.awt.*;
 import java.awt.image.BufferedImage;
 import java.io.File;
 import java.io.IOException;
 import java.util.HashMap;
 import java.util.Map;
-
-import javax.imageio.ImageIO;
-import javax.swing.JPanel;
 
 /**
  * A class to maintain ChessPiece Images.
@@ -28,13 +26,13 @@ public class ChessPieceSprite {
 	 *
 	 */
 	public enum ChessPieceSpriteType {
-		BLACK_KING(5, 0), BLACK_QUEEN(4, 0), BLACK_LOOK(3, 0), BLACK_KNIGHT(1, 0), BLACK_BISHOP(2, 0), BLACK_PAWN(0, 0),
+		BLACK_KING(5, 0), BLACK_QUEEN(4, 0), BLACK_ROOK(3, 0), BLACK_KNIGHT(1, 0), BLACK_BISHOP(2, 0), BLACK_PAWN(0, 0),
 
-		WHITE_KING(5, 1), WHITE_QUEEN(4, 1), WHITE_LOOK(3, 1), WHITE_KNIGHT(1, 1), WHITE_BISHOP(2, 1), WHITE_PAWN(0, 1),
+		WHITE_KING(5, 1), WHITE_QUEEN(4, 1), WHITE_ROOK(3, 1), WHITE_KNIGHT(1, 1), WHITE_BISHOP(2, 1), WHITE_PAWN(0, 1),
 
-		RED_KING(5, 5), RED_QUEEN(4, 5), RED_LOOK(3, 5), RED_KNIGHT(1, 5), RED_BISHOP(2, 5), RED_PAWN(0, 5),
+		RED_KING(5, 5), RED_QUEEN(4, 5), RED_ROOK(3, 5), RED_KNIGHT(1, 5), RED_BISHOP(2, 5), RED_PAWN(0, 5),
 
-		GREEN_KING(5, 8), GREEN_QUEEN(4, 8), GREEN_LOOK(3, 8), GREEN_KNIGHT(1, 8), GREEN_BISHOP(2, 8), GREEN_PAWN(0, 8);
+		GREEN_KING(5, 8), GREEN_QUEEN(4, 8), GREEN_ROOK(3, 8), GREEN_KNIGHT(1, 8), GREEN_BISHOP(2, 8), GREEN_PAWN(0, 8);
 
 		int x;
 		int y;
@@ -55,7 +53,7 @@ public class ChessPieceSprite {
 
 	private ChessPieceSprite() {
 		try {
-			imgAtlas = ImageIO.read(new File("sprite2.png"));
+			imgAtlas = ImageIO.read(new File("src/Image/sprite2.png"));
 		} catch (IOException e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
@@ -65,11 +63,11 @@ public class ChessPieceSprite {
 	}
 
 	/**
-	 * returns current instance of ChessPieceSprite
+	 * returns current instance of Piece.ChessPieceSprite
 	 * 
-	 * @return instance of ChessPieceSprite
+	 * @return instance of Piece.ChessPieceSprite
 	 */
-	public static ChessPieceSprite getInstace() {
+	public static ChessPieceSprite getInstance() {
 		return instance;
 	}
 

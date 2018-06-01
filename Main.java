@@ -1,7 +1,6 @@
-import kr.ac.cau.mecs.lenerd.chess.*;
 import javax.swing.*;
 
-import com.github.lbr0452000.chess.*;
+import View.ChooseManager;
 
 public class Main {
 
