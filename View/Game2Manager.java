@@ -9,8 +9,8 @@ import java.awt.event.MouseEvent;
 import java.awt.event.MouseListener;
 
 public class Game2Manager extends JFrame implements MouseListener {
-
 	private ChessBoard2 board = new ChessBoard2();
+	private int turn = 0;
 	
 	ChessPiece onHand;
 	
@@ -60,10 +60,14 @@ public class Game2Manager extends JFrame implements MouseListener {
 		else if(selected.piece == null) {		//아무것도 없는 칸을 선택했을 경우에는 아무것도 안하고 지나간다.
 		}
 		else {
-			onHand = selected.piece;
-			selected.piece = null;
-			selected.setBackground(Color.YELLOW);
-			System.out.println("온핸드에 올림");
+			if(turn == selected.piece.team) {
+				onHand = selected.piece;
+				selected.piece = null;
+				selected.setBackground(Color.YELLOW);
+				turn = (turn+1)%4;
+				System.out.println("온핸드에 올림"+turn);
+				
+			}
 		}
 	}
 	
