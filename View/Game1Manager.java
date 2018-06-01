@@ -2,7 +2,6 @@ package View;
 
 import Piece.ChessPiece;
 import View.panels.*;
-
 import javax.swing.*;
 import java.awt.*;
 import java.awt.event.MouseEvent;
@@ -80,7 +79,7 @@ public class Game1Manager extends JFrame implements MouseListener {
 		return false;//개발되기 전까지는 항상 false를 리턴하게끔 만들어주세요 
 	}
 	
-	boolean isStalemate() {//TODO : Stalemate 상황인지 판단해주는 메서
+	boolean isStalemate() {//TODO : 스테일메이트 상황인지 판단해주는 메서드
 		return false;//개발되기 전까지는 항상 false를 리턴하게끔 만들어주세요 
 	}
 }
