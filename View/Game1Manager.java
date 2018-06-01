@@ -29,19 +29,12 @@ public class Game1Manager extends JFrame implements ActionListener{
 				board.cells[i][j].addActionListener(this);
 			}
 		}
-		
-		
-		
-		
-		
 		setVisible(true);
 	}
 
 	@Override
 	public void actionPerformed(ActionEvent e) {
-		// TODO Auto-generated method stub
 		ChessBoardCell selected = (ChessBoardCell) e.getSource();
-		
 		
 		if(onHand != null) {//손에 들고있을 상
 			selected.piece = onHand;
@@ -56,8 +49,6 @@ public class Game1Manager extends JFrame implements ActionListener{
 			selected.piece = null;
 			selected.setBackground(Color.YELLOW);
 		}
-		
-		
 	}
 	
 	void move(Position from, Position to) {
