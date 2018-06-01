@@ -34,16 +34,21 @@ public class Game1Manager extends JFrame implements MouseListener {
 		setVisible(true);
 	}
 
+	//MouseListener 구현 
 	@Override
 	public void mouseClicked(MouseEvent e) {
 	}
-
 	@Override
 	public void mousePressed(MouseEvent e) {
 	}
-
 	@Override
-	public void mouseReleased(MouseEvent e) {
+	public void mouseEntered(MouseEvent e) {
+	}
+	@Override
+	public void mouseExited(MouseEvent e) {
+	}
+	@Override
+	public void mouseReleased(MouseEvent e) {	//mouseClicked는 가끔 인식이 안될 때가 있어서 mouseReleased로 구현합니다.
 		ChessBoardCell selected = (ChessBoardCell) e.getSource();
 		
 		if(onHand != null) {//손에 들고있을 상
@@ -52,7 +57,6 @@ public class Game1Manager extends JFrame implements MouseListener {
 			board.refresh();
 		}
 		else if(selected.piece == null) {		//아무것도 없는 칸을 선택했을 경우에는 아무것도 안하고 지나간다.
-			
 		}
 		else {
 			onHand = selected.piece;
@@ -61,12 +65,21 @@ public class Game1Manager extends JFrame implements MouseListener {
 			System.out.println("온핸드에 올림");
 		}
 	}
-
-	@Override
-	public void mouseEntered(MouseEvent e) {
+	
+	//판정메서드
+	boolean isValidMove(Position from, Position to) {//TODO : from에서 to로의 이동이 가능한 것인지 판단하는 메서드 
+		return true;//개발되기 전까지는 항상 true를 리턴하게끔 만들어주세요 
 	}
-
-	@Override
-	public void mouseExited(MouseEvent e) {
+	
+	Position[] validMoves(Position from) {//TODO : from에서 이동이 가능한 모든 칸의 배열을 리턴하는 메서드 
+		return new Position[0];//개발되기 전까지는 항상 이것을 리턴하게끔 만들어주세요 
+	}
+	
+	boolean isCheckmate() {//TODO : 체크메이트 상황인지 판단해주는 메서드  
+		return false;//개발되기 전까지는 항상 false를 리턴하게끔 만들어주세요 
+	}
+	
+	boolean isStalemate() {//TODO : Stalemate 상황인지 판단해주는 메서
+		return false;//개발되기 전까지는 항상 false를 리턴하게끔 만들어주세요 
 	}
 }
