@@ -51,12 +51,23 @@ public class Game1Manager extends JFrame implements MouseListener {
 	public void mouseReleased(MouseEvent e) { //mouseClicked는 가끔 인식이 안될 때가 있어서 mouseReleased로 구현합니다.
 		ChessBoardCell selected = (ChessBoardCell) e.getSource();
 
+
 		if (onHand != null) {                   //손에 체스를 들고있을 상황
 		    if (selected.getBackground() == Color.BLUE) {   //선택한 칸이 파란색일 경우(움직일 수 있는 곳인 경우)
                 selected.piece = onHand;
                 onHand = null;
                 board.refresh();
                 turnToNext();
+
+                if(isCheck()) {
+                    display.showCheck();
+                }
+                else {
+                    display.showNothing();
+                }
+
+
+
             }
             else if (selected.getBackground() == Color.YELLOW) {    //선택한 칸이 노란색일 경우(자기위치를 가리킨 경우) -> 실행취소시킨다.
                 selected.piece = onHand;
@@ -754,6 +765,17 @@ public class Game1Manager extends JFrame implements MouseListener {
     }
     */
 	boolean isCheck() {
+	    Position king = PositionofKing();
+        for (int i = 0; i < 8; i++) {
+            for (int j = 0; j < 8; j++) {
+                if(board.cells[i][j].piece != null) {
+                    if(isValidMove(board.cells[i][j].position, king)) {
+                        return true;
+                    }
+                }
+            }
+        }
+
 		return false;
 	}
 
