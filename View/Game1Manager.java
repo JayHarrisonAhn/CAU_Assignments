@@ -12,74 +12,753 @@ public class Game1Manager extends JFrame implements MouseListener {
 	private ChessBoard1 board = new ChessBoard1();
 	private int turn = 0;
 	ChessPiece onHand;
-	
+
 	public Game1Manager() {
 		setSize(800, 800);
-	    setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
-	    setLocationRelativeTo(null);
-		
+		setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
+		setLocationRelativeTo(null);
+
 		add(board);
 		setLayout(new GridLayout(1, 1));
-		
-		for(int i=0;i<8;i++) {
-			for(int j=0;j<8;j++) {
+
+		for (int i = 0; i < 8; i++) {
+			for (int j = 0; j < 8; j++) {
 				board.cells[i][j].addMouseListener(this);
 			}
 		}
 		setVisible(true);
 	}
 
-	//MouseListener 구현 
+	// MouseListener 援ы쁽
 	@Override
 	public void mouseClicked(MouseEvent e) {
 	}
+
 	@Override
 	public void mousePressed(MouseEvent e) {
 	}
+
 	@Override
 	public void mouseEntered(MouseEvent e) {
 	}
+
 	@Override
 	public void mouseExited(MouseEvent e) {
 	}
+
 	@Override
-	public void mouseReleased(MouseEvent e) {	//mouseClicked는 가끔 인식이 안될 때가 있어서 mouseReleased로 구현합니다.
+	public void mouseReleased(MouseEvent e) { //mouseClicked는 가끔 인식이 안될 때가 있어서 mouseReleased로 구현합니다.
 		ChessBoardCell selected = (ChessBoardCell) e.getSource();
-		
-		if(onHand != null) {//손에 들고있을 상황
-			selected.piece = onHand;
-			onHand = null;
-			board.refresh();
-		}
-		else if(selected.piece == null) {		//아무것도 없는 칸을 선택했을 경우에는 아무것도 안하고 지나간다.
-		}
-		else {
-			if(turn == selected.piece.team) {
-				onHand = selected.piece;
+
+		if (onHand != null) {                   //손에 체스를 들고있을 상황
+		    if (selected.getBackground() == Color.BLUE) {   //선택한 칸이 파란색일 경우(움직일 수 있는 곳인 경우)
+                selected.piece = onHand;
+                onHand = null;
+                board.refresh();
+                turnToNext();
+            }
+            else if (selected.getBackground() == Color.YELLOW) {    //선택한 칸이 노란색일 경우(자기위치를 가리킨 경우) -> 실행취소시킨다.
+                selected.piece = onHand;
+                onHand = null;
+                board.refresh();
+            }
+		} else if (selected.piece == null) {    //아무것도 없는 칸을 선택했을 경우에는 아무것도 안하고 지나간다.
+		} else {
+			if (turn == selected.piece.team) {  //현재 차례인 플레이어가 자신의 말을 잡았을 경우
+				danger=dangerMapping();
+
+				validMoves(selected.position);
+
+				onHand = selected.piece;        //선택된 칸의 말을 onHand에 올려버린다
 				selected.piece = null;
 				selected.setBackground(Color.YELLOW);
-				turn = (turn+1)%2;
-				System.out.println("온핸드에 올림"+turn);
-				
+
+
 			}
-			
 		}
 	}
-	
-	//판정메서드
-	boolean isValidMove(Position from, Position to) {//TODO : from에서 to로의 이동이 가능한 것인지 판단하는 메서드 
-		return true;//개발되기 전까지는 항상 true를 리턴하게끔 만들어주세요 
+
+	private void turnToNext() {
+        turn = (turn + 1) % 2;
+    }
+
+	int[][] danger = new int[8][8];// dangerous cell for king
+	// BLACK 0, WHITE 1
+
+	void validMoves(Position from) {// validMoveArr[0].x=num; 이동가능타일 갯수
+		Position to = new Position();
+		for (int i = 0; i < 8; i++) {
+			to.x = i;
+			for (int j = 0; j < 8; j++) {
+				to.y = j;
+				if (isValidMove(from, to)) {
+					System.out.println("(" + to.x + " " + to.y + ")");
+					board.cells[to.x][to.y].setBackground(Color.BLUE);
+				}
+			}
+		}
 	}
-	
-	Position[] validMoves(Position from) {//TODO : from에서 이동이 가능한 모든 칸의 배열을 리턴하는 메서드 
-		return new Position[0];//개발되기 전까지는 항상 이것을 리턴하게끔 만들어주세요 
+	int[][] dangerMapping() {
+		int[][] out = new int[8][8];
+		for (int i = 0; i < 8; i++) {
+			for (int j = 0; j < 8; j++)
+				out[i][j] = 0;
+		}
+		Position t = new Position();
+		if (turn % 2 == 0) {// black turn
+			for (int i = 0; i < 8; i++) {
+				t.x=i;
+				for (int j = 0; j < 8; j++) {
+					t.y=j;
+					if (board.cells[i][j].piece != null) {
+						if (board.cells[i][j].piece.team == 1 && board.cells[i][j].piece.name != "king") {
+							if (isValidMove(t, PositionofKing())) {
+								out[t.x][t.y] = 1;
+								System.out.printf("1 ");
+							}
+							else
+								System.out.printf("0 ");
+						}
+					}
+				}
+				System.out.println();
+			}
+			return out;
+		} else {// white turn
+			for (int i = 0; i < 8; i++) {
+				t.x=i;
+				for (int j = 0; j < 8; j++) {
+					t.y=j;
+					if (board.cells[i][j].piece != null) {
+						if (board.cells[i][j].piece.team == 0 && board.cells[i][j].piece.name != "king") {
+							if (isValidMove(t, PositionofKing())) {
+								out[t.x][t.y] = 1;
+								System.out.printf("1 ");
+							}
+							else
+								System.out.printf("0 ");
+						}
+					}
+				}
+				System.out.println();
+			}
+			return out;
+		}
 	}
-	
-	boolean isCheckmate() {//TODO : 체크메이트 상황인지 판단해주는 메서드  
-		return false;//개발되기 전까지는 항상 false를 리턴하게끔 만들어주세요 
+
+	Position PositionofKing() {// 왕의 위치찾기 turn ==0 black 임
+		if (turn % 2 == 0) { // turn BLACK
+			for (int i = 0; i < 8; i++) {
+				for (int j = 0; j < 8; j++) {
+					if (board.cells[i][j].piece != null) {
+						if ((board.cells[i][j].piece.name == "king") && (board.cells[i][j].piece.team == 0)) {
+							return (board.cells[i][j].position);
+						}
+					}
+				}
+			}
+			return null;
+		} else { // turn WHITE
+			for (int i = 0; i < 8; i++) {
+				for (int j = 0; j < 8; j++) {
+					if (board.cells[i][j].piece != null) {
+						if ((board.cells[i][j].piece.name == "king") && (board.cells[i][j].piece.team == 1)) {
+							return (board.cells[i][j].position);
+						}
+					}
+				}
+			}
+			return null;
+		}
 	}
-	
-	boolean isStalemate() {//TODO : 스테일메이트 상황인지 판단해주는 메서드
-		return false;//개발되기 전까지는 항상 false를 리턴하게끔 만들어주세요 
+
+    boolean isValidMove(Position from, Position to) {
+        if (board.cells[from.x][from.y].piece.name == "pawn") {
+            if (board.cells[from.x][from.y].piece.team == 0) {// black 0
+                if ((from.x - to.x == -2) && (from.x == 1) && (to.y == from.y)) {
+                    if (board.cells[to.x + 1][to.y].piece == null) {
+                        if (board.cells[to.x][to.y].piece != null) {// 잡을때
+                            return false;
+                        } else
+                            return true;
+                    } else
+                        return false;
+
+                } else if ((from.x - to.x == -1) && (to.y == from.y)) {
+                    if (board.cells[to.x][to.y].piece != null) {// 잡을때
+                        return false;
+                    } else
+                        return true;
+                } else if (from.x - to.x == -1 && (from.y - to.y == -1 || from.y - to.y == 1)) {
+                    if (board.cells[to.x][to.y].piece != null) {
+                        return (board.cells[to.x][to.y].piece.team == 1);
+                    } else
+                        return false;
+                } else
+                    return false;
+            } else {// white 1
+                if ((from.x - to.x == 2) && (from.x == 6) && (to.y == from.y)) {
+                    if (board.cells[to.x + 1][to.y].piece == null) {
+                        if (board.cells[to.x][to.y].piece != null) {// 잡을때
+                            return false;
+                        } else
+                            return true;
+                    }
+                    else
+                        return false;
+                } else if ((from.x - to.x == 1) && (to.y == from.y)) {
+                    if (board.cells[to.x][to.y].piece != null) {// 잡을때
+                        return false;
+                    } else
+                        return true;
+                } else if (from.x - to.x == 1 && (from.y - to.y == -1 || from.y - to.y == 1)) {
+                    if (board.cells[to.x][to.y].piece != null) {// 잡을때
+                        return (board.cells[to.x][to.y].piece.team == 0);
+                    } else
+                        return false;
+                } else
+                    return false;
+            }
+        } // pawn
+        else if (board.cells[from.x][from.y].piece.name == "rook") {
+            if (board.cells[from.x][from.y].piece.team == 0) {// black 0
+                if (from.x == to.x) {
+                    if (to.y < from.y) {
+                        for (int i = from.y - to.y - 1; i > 0; i--) {
+                            if (board.cells[to.x][to.y + i].piece != null)
+                                return false;
+                        }
+                        if (board.cells[to.x][to.y].piece != null) {// 잡을때
+                            return (board.cells[to.x][to.y].piece.team == 1);
+                        } else
+                            return true;
+                    } else {
+                        for (int i = to.y - from.y - 1; i > 0; i--) {
+                            if (board.cells[from.x][from.y + i].piece != null)
+                                return false;
+                        }
+                        if (board.cells[to.x][to.y].piece != null) {// 잡을때
+                            return (board.cells[to.x][to.y].piece.team == 1);
+                        } else
+                            return true;
+                    }
+                } else if (from.y == to.y) {
+                    if (to.x < from.x) {
+                        for (int i = from.x - to.x - 1; i > 0; i--) {
+                            if (board.cells[to.x + i][to.y].piece != null)
+                                return false;
+                        }
+                        if (board.cells[to.x][to.y].piece != null) {// 잡을때
+                            return (board.cells[to.x][to.y].piece.team == 1);
+                        } else
+                            return true;
+                    } else {
+                        for (int i = to.x - from.x - 1; i > 0; i--) {
+                            if (board.cells[from.x + i][from.y].piece != null)
+                                return false;
+                        }
+                        if (board.cells[to.x][to.y].piece != null) {// 잡을때
+                            return (board.cells[to.x][to.y].piece.team == 1);
+                        } else
+                            return true;
+                    }
+                } else
+                    return false;
+            } else {// white
+                if (from.x == to.x) {
+                    if (to.y < from.y) {
+                        for (int i = from.y - to.y - 1; i > 0; i--) {
+                            if (board.cells[to.x][to.y + i].piece != null)
+                                return false;
+                        }
+                        if (board.cells[to.x][to.y].piece != null) {// 잡을때
+                            return (board.cells[to.x][to.y].piece.team == 0);
+                        } else
+                            return true;
+                    } else {
+                        for (int i = to.y - from.y - 1; i > 0; i--) {
+                            if (board.cells[from.x][from.y + i].piece != null)
+                                return false;
+                        }
+                        if (board.cells[to.x][to.y].piece != null) {// 잡을때
+                            return (board.cells[to.x][to.y].piece.team == 0);
+                        } else
+                            return true;
+                    }
+                } else if (from.y == to.y) {
+                    if (to.x < from.x) {
+                        for (int i = from.x - to.x - 1; i > 0; i--) {
+                            if (board.cells[to.x + i][to.y].piece != null)
+                                return false;
+                        }
+                        if (board.cells[to.x][to.y].piece != null) {// 잡을때
+                            return (board.cells[to.x][to.y].piece.team == 0);
+                        } else
+                            return true;
+                    } else {
+                        for (int i = to.x - from.x - 1; i > 0; i--) {
+                            if (board.cells[from.x + i][from.y].piece != null)
+                                return false;
+                        }
+                        if (board.cells[to.x][to.y].piece != null) {// 잡을때
+                            return (board.cells[to.x][to.y].piece.team == 0);
+                        } else
+                            return true;
+                    }
+                } else
+                    return false;
+            }
+        } // rook
+
+        else if (board.cells[from.x][from.y].piece.name == "knight") {
+            if (board.cells[from.x][from.y].piece.team == 0) {// black
+                if ((from.x + 2 == to.x) && (from.y + 1 == to.y || from.y - 1 == to.y)) {
+                    if (board.cells[to.x][to.y].piece != null) {// 잡을때
+                        return (board.cells[to.x][to.y].piece.team == 1);
+                    } else
+                        return true;
+                } else if ((from.x - 2 == to.x) && (from.y + 1 == to.y || from.y - 1 == to.y)) {
+                    if (board.cells[to.x][to.y].piece != null) {// 잡을때
+                        return (board.cells[to.x][to.y].piece.team == 1);
+                    } else
+                        return true;
+                } else if ((from.y + 2 == to.y) && (from.x + 1 == to.x || from.x - 1 == to.x)) {
+                    if (board.cells[to.x][to.y].piece != null) {// 잡을때
+                        return (board.cells[to.x][to.y].piece.team == 1);
+                    } else
+                        return true;
+                } else if ((from.y - 2 == to.y) && (from.x + 1 == to.x || from.x - 1 == to.x)) {
+                    if (board.cells[to.x][to.y].piece != null) {// 잡을때
+                        return (board.cells[to.x][to.y].piece.team == 1);
+                    } else
+                        return true;
+                } else
+                    return false;
+            } else {// white
+                if ((from.x + 2 == to.x) && (from.y + 1 == to.y || from.y - 1 == to.y)) {
+                    if (board.cells[to.x][to.y].piece != null) {// 잡을때
+                        return (board.cells[to.x][to.y].piece.team == 0);
+                    } else
+                        return true;
+                } else if ((from.x - 2 == to.x) && (from.y + 1 == to.y || from.y - 1 == to.y)) {
+                    if (board.cells[to.x][to.y].piece != null) {// 잡을때
+                        return (board.cells[to.x][to.y].piece.team == 0);
+                    } else
+                        return true;
+                } else if ((from.y + 2 == to.y) && (from.x + 1 == to.x || from.x - 1 == to.x)) {
+                    if (board.cells[to.x][to.y].piece != null) {// 잡을때
+                        return (board.cells[to.x][to.y].piece.team == 0);
+                    } else
+                        return true;
+                } else if ((from.y - 2 == to.y) && (from.x + 1 == to.x || from.x - 1 == to.x)) {
+                    if (board.cells[to.x][to.y].piece != null) {// 잡을때
+                        return (board.cells[to.x][to.y].piece.team == 0);
+                    } else
+                        return true;
+                } else
+                    return false;
+            }
+        } else if (board.cells[from.x][from.y].piece.name == "bishop") {
+            if (board.cells[from.x][from.y].piece.team == 0) {// black 0
+                if (from.x + from.y == to.x + to.y) {
+                    if (from.y > to.y) {
+                        for (int i = from.y - to.y - 1; i > 0; i--) {
+                            if (board.cells[from.x + i][from.y - i].piece != null)
+                                return false;
+                        }
+                        if (board.cells[to.x][to.y].piece != null) {// 잡을때
+                            return (board.cells[to.x][to.y].piece.team == 1);
+                        } else
+                            return true;
+                    } else {
+                        for (int i = to.y - from.y - 1; i > 0; i--) {
+                            if (board.cells[from.x - i][from.y + i].piece != null)
+                                return false;
+                        }
+                        if (board.cells[to.x][to.y].piece != null) {// 잡을때
+                            return (board.cells[to.x][to.y].piece.team == 1);
+                        } else
+                            return true;
+                    }
+                } else if (from.x - to.x == from.y - to.y) {
+                    if (from.y > to.y) {
+                        for (int i = from.y - to.y - 1; i > 0; i--) {
+                            if (board.cells[from.x - i][from.y - i].piece != null)
+                                return false;
+                        }
+                        if (board.cells[to.x][to.y].piece != null) {// 잡을때
+                            return (board.cells[to.x][to.y].piece.team == 1);
+                        } else
+                            return true;
+                    } else {
+                        for (int i = to.y - from.y - 1; i > 0; i--) {
+                            if (board.cells[from.x + i][from.y + i].piece != null)
+                                return false;
+                        }
+                        if (board.cells[to.x][to.y].piece != null) {// 잡을때
+                            return (board.cells[to.x][to.y].piece.team == 1);
+                        } else
+                            return true;
+                    }
+                } else
+                    return false;
+            } else {// white
+                if (from.x + from.y == to.x + to.y) {
+                    if (from.y > to.y) {
+                        for (int i = from.y - to.y - 1; i > 0; i--) {
+                            if (board.cells[from.x + i][from.y - i].piece != null)
+                                return false;
+                        }
+                        if (board.cells[to.x][to.y].piece != null) {// 잡을때
+                            return (board.cells[to.x][to.y].piece.team == 0);
+                        } else
+                            return true;
+                    } else {
+                        for (int i = to.y - from.y - 1; i > 0; i--) {
+                            if (board.cells[from.x - i][from.y + i].piece != null)
+                                return false;
+                        }
+                        if (board.cells[to.x][to.y].piece != null) {// 잡을때
+                            return (board.cells[to.x][to.y].piece.team == 0);
+                        } else
+                            return true;
+                    }
+                } else if (from.x - to.x == from.y - to.y) {
+                    if (from.y > to.y) {
+                        for (int i = from.y - to.y - 1; i > 0; i--) {
+                            if (board.cells[from.x - i][from.y - i].piece != null)
+                                return false;
+                        }
+                        if (board.cells[to.x][to.y].piece != null) {// 잡을때
+                            return (board.cells[to.x][to.y].piece.team == 0);
+                        } else
+                            return true;
+                    } else {
+                        for (int i = to.y - from.y - 1; i > 0; i--) {
+                            if (board.cells[from.x + i][from.y + i].piece != null)
+                                return false;
+                        }
+                        if (board.cells[to.x][to.y].piece != null) {// 잡을때
+                            return (board.cells[to.x][to.y].piece.team == 0);
+                        } else
+                            return true;
+                    }
+                } else
+                    return false;
+            }
+        } else if (board.cells[from.x][from.y].piece.name == "queen") {
+            if (board.cells[from.x][from.y].piece.team == 0) {// black 0
+                if (from.x == to.x) {
+                    if (to.y < from.y) {
+                        for (int i = from.y - to.y - 1; i > 0; i--) {
+                            if (board.cells[to.x][to.y + i].piece != null)
+                                return false;
+                        }
+                        if (board.cells[to.x][to.y].piece != null) {// 잡을때
+                            return (board.cells[to.x][to.y].piece.team == 1);
+                        } else
+                            return true;
+                    } else {
+                        for (int i = to.y - from.y - 1; i > 0; i--) {
+                            if (board.cells[from.x][from.y + i].piece != null)
+                                return false;
+                        }
+                        if (board.cells[to.x][to.y].piece != null) {// 잡을때
+                            return (board.cells[to.x][to.y].piece.team == 1);
+                        } else
+                            return true;
+                    }
+                } else if (from.y == to.y) {
+                    if (to.x < from.x) {
+                        for (int i = from.x - to.x - 1; i > 0; i--) {
+                            if (board.cells[to.x + i][to.y].piece != null)
+                                return false;
+                        }
+                        if (board.cells[to.x][to.y].piece != null) {// 잡을때
+                            return (board.cells[to.x][to.y].piece.team == 1);
+                        } else
+                            return true;
+                    } else {
+                        for (int i = to.x - from.x - 1; i > 0; i--) {
+                            if (board.cells[from.x + i][from.y].piece != null)
+                                return false;
+                        }
+                        if (board.cells[to.x][to.y].piece != null) {// 잡을때
+                            return (board.cells[to.x][to.y].piece.team == 1);
+                        } else
+                            return true;
+                    }
+                } else if (from.x + from.y == to.x + to.y) {
+                    if (from.y > to.y) {
+                        for (int i = from.y - to.y - 1; i > 0; i--) {
+                            if (board.cells[from.x + i][from.y - i].piece != null)
+                                return false;
+                        }
+                        if (board.cells[to.x][to.y].piece != null) {// 잡을때
+                            return (board.cells[to.x][to.y].piece.team == 1);
+                        } else
+                            return true;
+                    } else {
+                        for (int i = to.y - from.y - 1; i > 0; i--) {
+                            if (board.cells[from.x - i][from.y + i].piece != null)
+                                return false;
+                        }
+                        if (board.cells[to.x][to.y].piece != null) {// 잡을때
+                            return (board.cells[to.x][to.y].piece.team == 1);
+                        } else
+                            return true;
+                    }
+                } else if (from.x - to.x == from.y - to.y) {
+                    if (from.y > to.y) {
+                        for (int i = from.y - to.y - 1; i > 0; i--) {
+                            if (board.cells[from.x - i][from.y - i].piece != null)
+                                return false;
+                        }
+                        if (board.cells[to.x][to.y].piece != null) {// 잡을때
+                            return (board.cells[to.x][to.y].piece.team == 1);
+                        } else
+                            return true;
+                    } else {
+                        for (int i = to.y - from.y - 1; i > 0; i--) {
+                            if (board.cells[from.x + i][from.y + i].piece != null)
+                                return false;
+                        }
+                        if (board.cells[to.x][to.y].piece != null) {// 잡을때
+                            return (board.cells[to.x][to.y].piece.team == 1);
+                        } else
+                            return true;
+                    }
+                } else
+                    return false;
+            } else {// white 1
+                if (from.x == to.x) {
+                    if (to.y < from.y) {
+                        for (int i = from.y - to.y - 1; i > 0; i--) {
+                            if (board.cells[to.x][to.y + i].piece != null)
+                                return false;
+                        }
+                        if (board.cells[to.x][to.y].piece != null) {// 잡을때
+                            return (board.cells[to.x][to.y].piece.team == 0);
+                        } else
+                            return true;
+                    } else {
+                        for (int i = to.y - from.y - 1; i > 0; i--) {
+                            if (board.cells[from.x][from.y + i].piece != null)
+                                return false;
+                        }
+                        if (board.cells[to.x][to.y].piece != null) {// 잡을때
+                            return (board.cells[to.x][to.y].piece.team == 0);
+                        } else
+                            return true;
+                    }
+                } else if (from.y == to.y) {
+                    if (to.x < from.x) {
+                        for (int i = from.x - to.x - 1; i > 0; i--) {
+                            if (board.cells[to.x + i][to.y].piece != null)
+                                return false;
+                        }
+                        if (board.cells[to.x][to.y].piece != null) {// 잡을때
+                            return (board.cells[to.x][to.y].piece.team == 0);
+                        } else
+                            return true;
+                    } else {
+                        for (int i = to.x - from.x - 1; i > 0; i--) {
+                            if (board.cells[from.x + i][from.y].piece != null)
+                                return false;
+                        }
+                        if (board.cells[to.x][to.y].piece != null) {// 잡을때
+                            return (board.cells[to.x][to.y].piece.team == 0);
+                        } else
+                            return true;
+                    }
+                } else if (from.x + from.y == to.x + to.y) {
+                    if (from.y > to.y) {
+                        for (int i = from.y - to.y - 1; i > 0; i--) {
+                            if (board.cells[from.x + i][from.y - i].piece != null)
+                                return false;
+                        }
+                        if (board.cells[to.x][to.y].piece != null) {// 잡을때
+                            return (board.cells[to.x][to.y].piece.team == 0);
+                        } else
+                            return true;
+                    } else {
+                        for (int i = to.y - from.y - 1; i > 0; i--) {
+                            if (board.cells[from.x - i][from.y + i].piece != null)
+                                return false;
+                        }
+                        if (board.cells[to.x][to.y].piece != null) {// 잡을때
+                            return (board.cells[to.x][to.y].piece.team == 0);
+                        } else
+                            return true;
+                    }
+                } else if (from.x - to.x == from.y - to.y) {
+                    if (from.y > to.y) {
+                        for (int i = from.y - to.y - 1; i > 0; i--) {
+                            if (board.cells[from.x - i][from.y - i].piece != null)
+                                return false;
+                        }
+                        if (board.cells[to.x][to.y].piece != null) {// 잡을때
+                            return (board.cells[to.x][to.y].piece.team == 0);
+                        } else
+                            return true;
+                    } else {
+                        for (int i = to.y - from.y - 1; i > 0; i--) {
+                            if (board.cells[from.x + i][from.y + i].piece != null)
+                                return false;
+                        }
+                        if (board.cells[to.x][to.y].piece != null) {// 잡을때
+                            return (board.cells[to.x][to.y].piece.team == 0);
+                        } else
+                            return true;
+                    }
+                } else
+                    return false;
+            }
+        } else if (board.cells[from.x][from.y].piece.name == "king") {
+            if (board.cells[from.x][from.y].piece.team == 0) {// black 0
+                if (to.x - from.x <= 1 && to.x - from.x >= -1 && to.y - from.y <= 1 && to.y - from.y >= -1) {
+                    if (board.cells[to.x][to.y].piece != null) {// 잡을때
+                        return (board.cells[to.x][to.y].piece.team == 1);
+                    } else
+                        return true;
+                    /*
+                     * dangerMap=dangerMapping(danger); for (int i = 0; i < 8; i++) { for (int j =
+                     * 0; j < 8; j++) System.out.printf("%d", dangerMap[i][j]);
+                     * System.out.println(); } if (board.cells[from.x][from.y].piece.team == 0) {//
+                     * black 0 if (board.cells[to.x][to.y].piece != null) { if
+                     * (board.cells[from.x][from.y].piece.team == 0) return false; } if
+                     * (dangerMap[to.x][to.y] == 1) return false; else return true; } else {// white
+                     * 1 if (board.cells[to.x][to.y].piece != null) { if
+                     * (board.cells[from.x][from.y].piece.team == 1) return false; } if
+                     * (dangerMap[to.x][to.y] == 1) return false; else return true; }
+                     */
+                } else
+                    return false;
+            }
+            else {
+                if (to.x - from.x <= 1 && to.x - from.x >= -1 && to.y - from.y <= 1 && to.y - from.y >= -1) {
+                    if (board.cells[to.x][to.y].piece != null) {// 잡을때
+                        return (board.cells[to.x][to.y].piece.team == 0);
+                    } else
+                        return true;
+                    /*
+                     * dangerMap=dangerMapping(danger); for (int i = 0; i < 8; i++) { for (int j =
+                     * 0; j < 8; j++) System.out.printf("%d", dangerMap[i][j]);
+                     * System.out.println(); } if (board.cells[from.x][from.y].piece.team == 0) {//
+                     * black 0 if (board.cells[to.x][to.y].piece != null) { if
+                     * (board.cells[from.x][from.y].piece.team == 0) return false; } if
+                     * (dangerMap[to.x][to.y] == 1) return false; else return true; } else {// white
+                     * 1 if (board.cells[to.x][to.y].piece != null) { if
+                     * (board.cells[from.x][from.y].piece.team == 1) return false; } if
+                     * (dangerMap[to.x][to.y] == 1) return false; else return true; }
+                     */
+                } else
+                    return false;
+            }
+        } else
+            return false;
+
+    }
+
+	/*void attackable() {
+       for(int i=0;i<8;i++) {
+          for(int j=0;j<8;j++) {
+
+             if(turn%2==0) {//black turn
+                if (board.cells[i][j].piece.team == 1) {//white piece
+
+                   if (board.cells[i][j].piece.name == "pawn") {
+                      if(i!=7) {
+                         if(j==7)
+                            danger[i-1][j-1]=1;
+                         else if(j==0)
+                            danger[i-1][j+1]=1;
+                         else {
+                            danger[i-1][j+1]=1;
+                            danger[i-1][j-1]=1;
+                         }
+                      }
+                   }
+
+                   else if (board.cells[i][j].piece.name == "rook") {
+                      for(int k=1;k+i<8;k++) {
+                         if(board.cells[i+k][j].piece==null)
+                            danger[i+k][j]=1;
+                      }
+                      for(int k=1;i-k>0;k++) {
+                         if(board.cells[i-k][j].piece==null)
+                            danger[i-k][j]=1;
+                      }
+                      for(int k=1;k+j<8;k++) {
+                         if(board.cells[i][j+k].piece==null)
+                            danger[i][j+k]=1;
+                      }
+                      for(int k=1;j-k>0;k++) {
+                         if(board.cells[i][j-k].piece==null)
+                            danger[i][j-k]=1;
+                      }
+                   }
+
+                   else if (board.cells[i][j].piece.name == "bishop") {
+                      for(int k=1;k+i<8&&j+k<8;k++) {
+                         if(board.cells[i+k][j+k].piece==null)
+                            danger[i+k][j+k]=1;
+                      }
+                      for(int k=1;i-k<0&&j-k<0;k++) {
+                         if(board.cells[i-k][j-k].piece==null)
+                            danger[i-k][j-k]=1;
+                      }
+                      for(int k=1;i-k<0&&j+k<8;k++) {
+                         if(board.cells[i-k][j+k].piece==null)
+                            danger[i-k][j+k]=1;
+                      }
+                      for(int k=1;i+k<8&&j-k<0;k++) {
+                         if(board.cells[i+k][j-k].piece==null)
+                            danger[i+k][j-k]=1;
+                      }
+                   }
+
+                   else if (board.cells[i][j].piece.name == "knight") {
+                      danger[i+2][j-1]=1;
+                      danger[i-2][j-1]=1;
+                   }
+
+                   else {
+
+                   }
+                }
+
+
+             }
+             else {//white turn
+
+             }
+          }
+       }/////////////////////////////////////////////////////////
+
+       for(int i=0;i<8;i++) {
+          for(int j=0;j<8;j++) {
+             if(turn%2==0) {//black turn
+                if (board.cells[i][j].piece.team == 1) {//white piece
+                   danger[i][j]=0;
+                }
+             }
+             else
+                if(board.cells[i][j].piece.team == 0)
+                   danger[i][j]=0;
+          }
+       }
+    }
+    */
+	boolean isCheck() {
+		return false;
 	}
+
+    boolean isCheckmate() {//TODO : 체크메이트 상황인지 판단해주는 메서드
+        return false;//개발되기 전까지는 항상 false를 리턴하게끔 만들어주세요
+    }
+
+    boolean isStalemate() {//TODO : 스테일메이트 상황인지 판단해주는 메서드
+        return false;//개발되기 전까지는 항상 false를 리턴하게끔 만들어주세요
+    }
 }

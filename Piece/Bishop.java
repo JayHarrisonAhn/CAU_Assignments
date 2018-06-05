@@ -9,6 +9,7 @@ public class Bishop extends ChessPiece{
         super.team = team;
         super.color = color;
         super.image = myInstance.getChessPiece(type);
+        super.name = "bishop";
     }
 
 }
