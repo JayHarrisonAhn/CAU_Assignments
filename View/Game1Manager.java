@@ -10,16 +10,17 @@ import java.awt.event.MouseListener;
 public class Game1Manager extends JFrame implements MouseListener {
 
 	private ChessBoard1 board = new ChessBoard1();
+	private StatusDisplay display = new StatusDisplay();
 	private int turn = 0;
 	ChessPiece onHand;
 
 	public Game1Manager() {
-		setSize(800, 800);
+		setSize(800, 900);
 		setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
 		setLocationRelativeTo(null);
 
-		add(board);
-		setLayout(new GridLayout(1, 1));
+		add("North", display);
+		add("Center", board);
 
 		for (int i = 0; i < 8; i++) {
 			for (int j = 0; j < 8; j++) {
@@ -81,6 +82,7 @@ public class Game1Manager extends JFrame implements MouseListener {
 
 	private void turnToNext() {
         turn = (turn + 1) % 2;
+        display.updateTurn(turn);
     }
 
 	int[][] danger = new int[8][8];// dangerous cell for king

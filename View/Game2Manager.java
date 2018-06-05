@@ -10,6 +10,7 @@ import java.awt.event.MouseListener;
 
 public class Game2Manager extends JFrame implements MouseListener {
 	private ChessBoard2 board = new ChessBoard2();
+	private StatusDisplay display = new StatusDisplay();
 	private int turn = 0;
 	
 	ChessPiece onHand;
