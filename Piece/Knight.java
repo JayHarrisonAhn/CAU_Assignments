@@ -10,7 +10,6 @@ public class Knight extends ChessPiece{
         super.team = team;
         super.color = color;
         super.image = myInstance.getChessPiece(type);
-        super.name = "knight";
     }
 
 }

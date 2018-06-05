@@ -67,6 +67,7 @@ public class Game1Manager extends JFrame implements MouseListener {
 			if (turn == selected.piece.team) {  //현재 차례인 플레이어가 자신의 말을 잡았을 경우
 				danger=dangerMapping();
 
+//				System.out.println(selected.piece.getClass().getCanonicalName());
 				validMoves(selected.position);
 
 				onHand = selected.piece;        //선택된 칸의 말을 onHand에 올려버린다
@@ -111,7 +112,7 @@ public class Game1Manager extends JFrame implements MouseListener {
 				for (int j = 0; j < 8; j++) {
 					t.y=j;
 					if (board.cells[i][j].piece != null) {
-						if (board.cells[i][j].piece.team == 1 && board.cells[i][j].piece.name != "king") {
+						if (board.cells[i][j].piece.team == 1 && board.cells[i][j].piece.getClass().getCanonicalName() != "Piece.King") {
 							if (isValidMove(t, PositionofKing())) {
 								out[t.x][t.y] = 1;
 								System.out.printf("1 ");
@@ -130,7 +131,7 @@ public class Game1Manager extends JFrame implements MouseListener {
 				for (int j = 0; j < 8; j++) {
 					t.y=j;
 					if (board.cells[i][j].piece != null) {
-						if (board.cells[i][j].piece.team == 0 && board.cells[i][j].piece.name != "king") {
+						if (board.cells[i][j].piece.team == 0 && board.cells[i][j].piece.getClass().getCanonicalName() != "Piece.King") {
 							if (isValidMove(t, PositionofKing())) {
 								out[t.x][t.y] = 1;
 								System.out.printf("1 ");
@@ -151,7 +152,7 @@ public class Game1Manager extends JFrame implements MouseListener {
 			for (int i = 0; i < 8; i++) {
 				for (int j = 0; j < 8; j++) {
 					if (board.cells[i][j].piece != null) {
-						if ((board.cells[i][j].piece.name == "king") && (board.cells[i][j].piece.team == 0)) {
+						if ((board.cells[i][j].piece.getClass().getCanonicalName() == "Piece.King") && (board.cells[i][j].piece.team == 0)) {
 							return (board.cells[i][j].position);
 						}
 					}
@@ -162,7 +163,7 @@ public class Game1Manager extends JFrame implements MouseListener {
 			for (int i = 0; i < 8; i++) {
 				for (int j = 0; j < 8; j++) {
 					if (board.cells[i][j].piece != null) {
-						if ((board.cells[i][j].piece.name == "king") && (board.cells[i][j].piece.team == 1)) {
+						if ((board.cells[i][j].piece.getClass().getCanonicalName() == "Piece.King") && (board.cells[i][j].piece.team == 1)) {
 							return (board.cells[i][j].position);
 						}
 					}
@@ -173,7 +174,7 @@ public class Game1Manager extends JFrame implements MouseListener {
 	}
 
     boolean isValidMove(Position from, Position to) {
-        if (board.cells[from.x][from.y].piece.name == "pawn") {
+        if (board.cells[from.x][from.y].piece.getClass().getCanonicalName() == "Piece.Pawn") {
             if (board.cells[from.x][from.y].piece.team == 0) {// black 0
                 if ((from.x - to.x == -2) && (from.x == 1) && (to.y == from.y)) {
                     if (board.cells[to.x + 1][to.y].piece == null) {
@@ -220,7 +221,7 @@ public class Game1Manager extends JFrame implements MouseListener {
                     return false;
             }
         } // pawn
-        else if (board.cells[from.x][from.y].piece.name == "rook") {
+        else if (board.cells[from.x][from.y].piece.getClass().getCanonicalName() == "Piece.Rook") {
             if (board.cells[from.x][from.y].piece.team == 0) {// black 0
                 if (from.x == to.x) {
                     if (to.y < from.y) {
@@ -310,7 +311,7 @@ public class Game1Manager extends JFrame implements MouseListener {
             }
         } // rook
 
-        else if (board.cells[from.x][from.y].piece.name == "knight") {
+        else if (board.cells[from.x][from.y].piece.getClass().getCanonicalName() == "Piece.Knight") {
             if (board.cells[from.x][from.y].piece.team == 0) {// black
                 if ((from.x + 2 == to.x) && (from.y + 1 == to.y || from.y - 1 == to.y)) {
                     if (board.cells[to.x][to.y].piece != null) {// 잡을때
@@ -358,7 +359,7 @@ public class Game1Manager extends JFrame implements MouseListener {
                 } else
                     return false;
             }
-        } else if (board.cells[from.x][from.y].piece.name == "bishop") {
+        } else if (board.cells[from.x][from.y].piece.getClass().getCanonicalName() == "Piece.Bishop") {
             if (board.cells[from.x][from.y].piece.team == 0) {// black 0
                 if (from.x + from.y == to.x + to.y) {
                     if (from.y > to.y) {
@@ -446,7 +447,7 @@ public class Game1Manager extends JFrame implements MouseListener {
                 } else
                     return false;
             }
-        } else if (board.cells[from.x][from.y].piece.name == "queen") {
+        } else if (board.cells[from.x][from.y].piece.getClass().getCanonicalName() == "Piece.Queen") {
             if (board.cells[from.x][from.y].piece.team == 0) {// black 0
                 if (from.x == to.x) {
                     if (to.y < from.y) {
@@ -614,7 +615,7 @@ public class Game1Manager extends JFrame implements MouseListener {
                 } else
                     return false;
             }
-        } else if (board.cells[from.x][from.y].piece.name == "king") {
+        } else if (board.cells[from.x][from.y].piece.getClass().getCanonicalName() == "Piece.King") {
             if (board.cells[from.x][from.y].piece.team == 0) {// black 0
                 if (to.x - from.x <= 1 && to.x - from.x >= -1 && to.y - from.y <= 1 && to.y - from.y >= -1) {
                     if (board.cells[to.x][to.y].piece != null) {// 잡을때
@@ -667,7 +668,7 @@ public class Game1Manager extends JFrame implements MouseListener {
              if(turn%2==0) {//black turn
                 if (board.cells[i][j].piece.team == 1) {//white piece
 
-                   if (board.cells[i][j].piece.name == "pawn") {
+                   if (board.cells[i][j].piece.getClass().getCanonicalName() == "Piece.Pawn") {
                       if(i!=7) {
                          if(j==7)
                             danger[i-1][j-1]=1;
@@ -680,7 +681,7 @@ public class Game1Manager extends JFrame implements MouseListener {
                       }
                    }
 
-                   else if (board.cells[i][j].piece.name == "rook") {
+                   else if (board.cells[i][j].piece.getClass().getCanonicalName() == "Piece.Rook") {
                       for(int k=1;k+i<8;k++) {
                          if(board.cells[i+k][j].piece==null)
                             danger[i+k][j]=1;
@@ -699,7 +700,7 @@ public class Game1Manager extends JFrame implements MouseListener {
                       }
                    }
 
-                   else if (board.cells[i][j].piece.name == "bishop") {
+                   else if (board.cells[i][j].piece.getClass().getCanonicalName() == "Piece.Bishop") {
                       for(int k=1;k+i<8&&j+k<8;k++) {
                          if(board.cells[i+k][j+k].piece==null)
                             danger[i+k][j+k]=1;
@@ -718,7 +719,7 @@ public class Game1Manager extends JFrame implements MouseListener {
                       }
                    }
 
-                   else if (board.cells[i][j].piece.name == "knight") {
+                   else if (board.cells[i][j].piece.getClass().getCanonicalName() == "Piece.Knight") {
                       danger[i+2][j-1]=1;
                       danger[i-2][j-1]=1;
                    }

@@ -8,5 +8,4 @@ public class ChessPiece {
     public int team;
     public Color color;
     public BufferedImage image;
-    public String name;
 }
