@@ -1,5 +1,3 @@
-import javax.swing.*;
-
 import View.ChooseManager;
 
 public class Main {

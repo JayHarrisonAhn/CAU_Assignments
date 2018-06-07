@@ -584,10 +584,4 @@ public class Game2Manager extends GameManager {
         else
             return false;
     }
-
-    private ChessBoard1 tempboard;
-
-    boolean isStalemate() {//TODO : 스테일메이트 상황인지 판단해주는 메서드
-        return false;//개발되기 전까지는 항상 false를 리턴하게끔 만들어주세요
-    }
 }

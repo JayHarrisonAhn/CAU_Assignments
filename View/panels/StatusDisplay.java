@@ -15,7 +15,7 @@ public class StatusDisplay extends JPanel {
     public StatusDisplay() {
         setPreferredSize(new Dimension(800, 100));
         setLayout(new BorderLayout());
-        
+
         add("Center", judge);
         judge.setPreferredSize(new Dimension(300,100));
         judge.setHorizontalAlignment(JLabel.CENTER);
