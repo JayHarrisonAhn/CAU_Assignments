@@ -14,15 +14,7 @@ public abstract class GameManager extends JFrame implements MouseListener {
         setSize(numOfWidth()*100, (numOfWidth()+1)*100);
         setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
         setLocationRelativeTo(null);
-
-
-
         add("North", display);
-
-
-
-
-
 
     }
 
@@ -58,20 +50,18 @@ public abstract class GameManager extends JFrame implements MouseListener {
 
         if (onHand != null) {                   //손에 체스를 들고있을 상황
             if (selected.getBackground() == Color.BLUE) {   //선택한 칸이 파란색일 경우(움직일 수 있는 곳인 경우)
-                if(selected.piece != null) {
-                    if(selected.piece.getClass().getCanonicalName()=="Piece.King") {
-                        king[turn] = selected.position;
-                    }
-                }
-
-
                 selected.piece = onHand;
                 onHand = null;
-                board.refresh();
+                if(selected.piece != null) {
+                    if(selected.piece.getClass().getCanonicalName()=="Piece.King") {
+                        king[turn] = positionofKing();
+                    }
+                }
                 turnToNext();
+                board.refresh();
 
                 if(isCheck()) {
-                    display.showCheck();
+                    display.showCheck(board.cells[king[turn].x][king[turn].y].piece.color);
                 }
                 else {
                     display.showNothing();
@@ -113,13 +103,14 @@ public abstract class GameManager extends JFrame implements MouseListener {
         }
     }
 
-    boolean isCheck() {
-        Position king = positionofKing();
+    boolean isCheck() {//다음 차례의 사람이 내 왕을 죽일 수 있는가?
         for (int i = 0; i < numOfWidth(); i++) {
-            for (int j = 0; j < numOfWidth(); j++) {
-                if(board.cells[i][j].piece != null) {
-                    if(isValidMove(board.cells[i][j].position, king)) {
-                        return true;
+            for (int j = 0; j < numOfWidth(); j++) {//탐색한다
+                if((board.cells[i][j].piece != null)) {//말이 있는 곳인데
+                    if(board.cells[i][j].piece.team == (turn+1)%2) {//다음 상대의 말이
+                        if(isValidMove(board.cells[i][j].position, king[turn])) {//내 왕의 위치로 올 수 있는가?
+                            return true;
+                        }
                     }
                 }
             }

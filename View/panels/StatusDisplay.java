@@ -51,14 +51,24 @@ public class StatusDisplay extends JPanel implements ActionListener {   //TODO :
         this.judge.setVisible(false);
     }
 
-    public void showCheck() {
+    public void showCheck(Color team) {
         ImageIcon icon = new ImageIcon("src/View/panels/displayImages/Check.jpg");
         Image temp = icon.getImage();
         temp = temp.getScaledInstance(100, 100, Image.SCALE_SMOOTH);
         icon = new ImageIcon(temp);
 
         this.judge.setIcon(icon);
-        this.judge.setText("췍(Check, 왕이 공격받고 있습니다.)");
+
+        if(team==Color.BLACK) {
+            this.judge.setText("Check(검정팀의 왕이 공격받고 있습니다.)");
+        }
+        else if(team==Color.WHITE) {
+            this.judge.setText("Check(하얀팀의 왕이 공격받고 있습니다.)");
+        }
+        else {
+            this.judge.setText("Check(??팀.)");
+        }
+
         this.judge.setVisible(true);
     }
 
@@ -66,6 +76,6 @@ public class StatusDisplay extends JPanel implements ActionListener {   //TODO :
 
     @Override       //TODO : 제거
     public void actionPerformed(ActionEvent e) {
-        showCheck();
+        showCheck(Color.GREEN);
     }
 }

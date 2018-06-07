@@ -22,18 +22,18 @@ public class Game1Manager extends GameManager {
 	public Game1Manager() {
         super();
 
+        //board 초기화
         super.board = new ChessBoard1();
-
-
         add("Center", board);
-
         for (int i = 0; i < numOfWidth(); i++) {
             for (int j = 0; j < numOfWidth(); j++) {
                 ((ChessBoard1) super.board).cells[i][j].addMouseListener(this);
             }
         }
-        for(int i=0;i<numOfTeams();i++) {  //king 초기화
-            super.king[i] = super.positionofKing(i);
+
+        //king 초기화
+        for(int i=0;i<numOfTeams();i++) {
+            king[i] = positionofKing(i);
         }
         setVisible(true);
 	}
@@ -56,14 +56,15 @@ public class Game1Manager extends GameManager {
 						if (board.cells[i][j].piece.team == 1 && board.cells[i][j].piece.getClass().getCanonicalName() != "Piece.King") {
 							if (isValidMove(t, positionofKing())) {
 								out[t.x][t.y] = 1;
-								System.out.printf("1 ");
+//								System.out.printf("1 ");
 							}
-							else
-								System.out.printf("0 ");
+							else {
+//                                System.out.printf("0 ");
+                            }
 						}
 					}
 				}
-				System.out.println();
+//				System.out.println();
 			}
 			return out;
 		} else {// white turn
@@ -75,14 +76,15 @@ public class Game1Manager extends GameManager {
 						if (board.cells[i][j].piece.team == 0 && board.cells[i][j].piece.getClass().getCanonicalName() != "Piece.King") {
 							if (isValidMove(t, positionofKing())) {
 								out[t.x][t.y] = 1;
-								System.out.printf("1 ");
+//								System.out.printf("1 ");
 							}
-							else
-								System.out.printf("0 ");
+							else {
+//                                System.out.printf("0 ");
+                            }
 						}
 					}
 				}
-				System.out.println();
+//				System.out.println();
 			}
 			return out;
 		}
@@ -93,7 +95,7 @@ public class Game1Manager extends GameManager {
         if (board.cells[from.x][from.y].piece.getClass().getCanonicalName() == "Piece.Pawn") {
             if (board.cells[from.x][from.y].piece.team == 0) {// black 0
                 if ((from.x - to.x == -2) && (from.x == 1) && (to.y == from.y)) {
-                    if (board.cells[to.x + 1][to.y].piece == null) {
+                    if (board.cells[to.x - 1][to.y].piece == null) {
                         if (board.cells[to.x][to.y].piece != null) {// 잡을때
                             return false;
                         } else
