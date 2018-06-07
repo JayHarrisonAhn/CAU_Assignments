@@ -138,13 +138,27 @@ public abstract class GameManager extends JFrame implements MouseListener {
 
     protected void validMoves(Position from) {// validMoveArr[0].x=num; 이동가능타일 갯수
         Position to = new Position();
+        ChessPiece temp;
         for (int i = 0; i < numOfWidth(); i++) {
             to.x = i;
             for (int j = 0; j < numOfWidth(); j++) {
                 to.y = j;
                 if (isValidMove(from, to)) {
 //                    System.out.println("(" + to.x + " " + to.y + ")");
-                    board.cells[to.x][to.y].setBackground(Color.BLUE);
+                    if(board.cells[from.x][from.y].piece.getClass().getCanonicalName()=="Piece.King") {
+                        king[turn] = board.cells[to.x][to.y].position;
+                    }
+                    temp = board.cells[to.x][to.y].piece;
+                    board.cells[to.x][to.y].piece = board.cells[from.x][from.y].piece;
+                    board.cells[from.x][from.y].piece = null;
+                    if(!isCheck()) {
+                        board.cells[to.x][to.y].setBackground(Color.BLUE);
+                    }
+                    if(board.cells[to.x][to.y].piece.getClass().getCanonicalName()=="Piece.King") {
+                        king[turn] = board.cells[from.x][from.y].position;
+                    }
+                    board.cells[from.x][from.y].piece = board.cells[to.x][to.y].piece;
+                    board.cells[to.x][to.y].piece = temp;
                 }
             }
         }
