@@ -207,7 +207,7 @@ public abstract class GameManager extends JFrame implements MouseListener {
         for (int i = 0; i < numOfWidth(); i++) {
             for (int j = 0; j < numOfWidth(); j++) {//탐색한다
                 if((board.cells[i][j].piece != null)) {//말이 있는 곳인데
-                    if(board.cells[i][j].piece.team == turnToNext()) {//다음 상대의 말이
+                    if((board.cells[i][j].piece.team == turnToNext())||board.cells[i][j].piece.team == turnToPrev()) {//다른 팀의 말이
                         if(isValidMove(board.cells[i][j].position, positionofKing(turn))) {//내 왕의 위치로 올 수 있는가?
                             return true;
                         }
