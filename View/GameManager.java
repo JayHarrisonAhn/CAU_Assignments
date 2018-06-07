@@ -77,6 +77,7 @@ public abstract class GameManager extends JFrame implements MouseListener {
                     board.refresh();
 
                     if(isCheck()) {
+                        king[turn] = positionofKing(turn);
                         display.showCheck(board.cells[king[turn].x][king[turn].y].piece.color);
                         if(isCheckmate()) {
                             display.showCheckmate(board.cells[king[turn].x][king[turn].y].piece.color);
