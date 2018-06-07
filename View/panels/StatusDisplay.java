@@ -8,24 +8,18 @@ import java.awt.event.ActionListener;
 import java.awt.image.BufferedImage;
 import java.io.File;
 
-public class StatusDisplay extends JPanel implements ActionListener {   //TODO : actionlistener는 테스트를 위한것입니다!
+public class StatusDisplay extends JPanel {
     JLabel turn = new JLabel();//자신의 차례를 보여주는 라벨
     JLabel judge = new JLabel();
-    JButton test = new JButton("테스트 버튼");   //TODO : 제거
 
     public StatusDisplay() {
         setPreferredSize(new Dimension(800, 100));
         setLayout(new BorderLayout());
-
-
+        
         add("Center", judge);
         judge.setPreferredSize(new Dimension(300,100));
         judge.setHorizontalAlignment(JLabel.CENTER);
         judge.setVisible(false);
-
-//        add("East", test);                   //TODO : 제거
-//        test.addActionListener(this);
-//        test.setVisible(true);
 
         add("West", turn);
         turn.setPreferredSize(new Dimension(100,100));//turn 설정
@@ -113,12 +107,7 @@ public class StatusDisplay extends JPanel implements ActionListener {   //TODO :
 
     public void showStalemate() {
         this.judge.setText("Stalemate 무승부입니다.");
+        this.judge.setIcon(null);
         this.judge.setVisible(true);
-    }
-
-
-    @Override       //TODO : 제거
-    public void actionPerformed(ActionEvent e) {
-        showCheck(Color.GREEN);
     }
 }
