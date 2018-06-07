@@ -51,6 +51,11 @@ public abstract class GameManager extends JFrame implements MouseListener {
 
         if (onHand != null) {                   //손에 체스를 들고있을 상황
             if (selected.getBackground() == Color.BLUE) {   //선택한 칸이 파란색일 경우(움직일 수 있는 곳인 경우)
+
+                //말을 놓았을 때 체크상황이 나올 경우 실행취소
+
+
+
                 selected.piece = onHand;
                 onHand = null;
                 if(selected.piece != null) {
@@ -58,12 +63,44 @@ public abstract class GameManager extends JFrame implements MouseListener {
                         king[turn] = positionofKing();
                     }
                 }
-                turn = turnToNext();
-                display.updateTurn(turn);
-                board.refresh();
 
                 if(isCheck()) {
-                    display.showCheck(board.cells[king[turn].x][king[turn].y].piece.color);
+
+                    onHand = selected.piece;        //선택된 칸의 말을 onHand에 올려버린다
+                    selected.piece = null;
+
+
+                }
+                else {
+                    turn = turnToNext();
+                    display.updateTurn(turn);
+                    board.refresh();
+
+                    if(isCheck()) {
+                        display.showCheck(board.cells[king[turn].x][king[turn].y].piece.color);
+                        if(isCheckmate()) {
+                            display.showCheckmate(board.cells[king[turn].x][king[turn].y].piece.color);
+                            Position loser = positionofKing();
+                            board.cells[loser.x][loser.y].setBackground(Color.RED);
+                            for(int i=0;i<numOfWidth();i++) {
+                                for(int j=0;j<numOfWidth();j++) {
+                                    board.cells[i][j].removeMouseListener(this);
+                                }
+                            }
+                        }
+                    }
+                    else {
+                        display.showNothing();
+                        if(isCheckmate()) {
+                            display.showStalemate();
+                            for(int i=0;i<numOfWidth();i++) {
+                                for(int j=0;j<numOfWidth();j++) {
+                                    board.cells[i][j].removeMouseListener(this);
+                                }
+                            }
+                        }
+                    }
+
                     if(isCheckmate()) {
                         display.showCheckmate(board.cells[king[turn].x][king[turn].y].piece.color);
                         Position loser = positionofKing();
@@ -75,28 +112,8 @@ public abstract class GameManager extends JFrame implements MouseListener {
                         }
                     }
                 }
-                else {
-                    display.showNothing();
-                    if(isCheckmate()) {
-                        display.showStalemate();
-                        for(int i=0;i<numOfWidth();i++) {
-                            for(int j=0;j<numOfWidth();j++) {
-                                board.cells[i][j].removeMouseListener(this);
-                            }
-                        }
-                    }
-                }
 
-                if(isCheckmate()) {
-                    display.showCheckmate(board.cells[king[turn].x][king[turn].y].piece.color);
-                    Position loser = positionofKing();
-                    board.cells[loser.x][loser.y].setBackground(Color.RED);
-                    for(int i=0;i<numOfWidth();i++) {
-                        for(int j=0;j<numOfWidth();j++) {
-                            board.cells[i][j].removeMouseListener(this);
-                        }
-                    }
-                }
+
             }
             else if (selected.getBackground() == Color.YELLOW) {    //선택한 칸이 노란색일 경우(자기위치를 가리킨 경우) -> 실행취소시킨다.
                 selected.piece = onHand;
