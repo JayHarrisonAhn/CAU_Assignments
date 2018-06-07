@@ -39,10 +39,10 @@ public class StatusDisplay extends JPanel implements ActionListener {   //TODO :
     public void updateTurn(int to) {//turn을 업데이트 시켜주는 메서드
         switch (to) {
             case 0:
-                turn.setText("검정팀 차례");
+                turn.setText("흰팀 차례");
                 break;
             case 1:
-                turn.setText("흰팀 차례");
+                turn.setText("검정팀 차례");
                 break;
         }
     }

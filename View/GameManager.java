@@ -22,6 +22,7 @@ public abstract class GameManager extends JFrame implements MouseListener {
     abstract int numOfTeams();
 
     protected ChessBoard board;
+    private ChessBoard tempBoard;
     protected ChessPiece onHand;
     protected int turn = 0;
     protected Position[] king = new Position[numOfTeams()];
@@ -60,7 +61,11 @@ public abstract class GameManager extends JFrame implements MouseListener {
                 turnToNext();
                 board.refresh();
 
-                if(isCheck()) {
+                if(isCheckmate()) {
+                    System.out.println("체크메이트");
+                }
+
+                if(isCheck(turn)) {
                     display.showCheck(board.cells[king[turn].x][king[turn].y].piece.color);
                 }
                 else {
@@ -103,12 +108,55 @@ public abstract class GameManager extends JFrame implements MouseListener {
         }
     }
 
-    boolean isCheck() {//다음 차례의 사람이 내 왕을 죽일 수 있는가?
+    boolean isCheckmate() {
+
+        Position from = new Position();
+        Position to = new Position();
+        ChessPiece temp;
+        for (int i = 0; i < numOfWidth(); i++) {
+
+            from.x = i;
+            for (int j = 0; j < numOfWidth(); j++) {
+                from.y = j;
+                if(board.cells[i][j].piece != null) {
+                    if(board.cells[i][j].piece.team == turn) {
+                        for (int k = 0; k < numOfWidth(); k++) {
+                            to.x = k;
+                            for (int l = 0; l < numOfWidth(); l++) {
+                                to.y = l;
+
+                                if(isValidMove(from, to)) {
+                                    temp = board.cells[to.x][to.y].piece;
+                                    board.cells[to.x][to.y].piece = board.cells[from.x][from.y].piece;
+                                    board.cells[from.x][from.y].piece = null;
+
+                                    System.out.print(from.x);
+                                    System.out.print(", ");
+                                    System.out.println(from.y);
+                                    if(!isCheck(turn)) {
+                                        board.cells[from.x][from.y].piece = board.cells[to.x][to.y].piece;
+                                        board.cells[to.x][to.y].piece = temp;
+                                        return false;
+                                    }
+                                    board.cells[from.x][from.y].piece = board.cells[to.x][to.y].piece;
+                                    board.cells[to.x][to.y].piece = temp;
+                                    temp = null;
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        }
+        return true;
+    }
+
+    boolean isCheck(int now) {//다음 차례의 사람이 내 왕을 죽일 수 있는가?
         for (int i = 0; i < numOfWidth(); i++) {
             for (int j = 0; j < numOfWidth(); j++) {//탐색한다
                 if((board.cells[i][j].piece != null)) {//말이 있는 곳인데
-                    if(board.cells[i][j].piece.team == (turn+1)%2) {//다음 상대의 말이
-                        if(isValidMove(board.cells[i][j].position, king[turn])) {//내 왕의 위치로 올 수 있는가?
+                    if(board.cells[i][j].piece.team == (now+1)%numOfTeams()) {//다음 상대의 말이
+                        if(isValidMove(board.cells[i][j].position, positionofKing(now))) {//내 왕의 위치로 올 수 있는가?
                             return true;
                         }
                     }

@@ -93,7 +93,7 @@ public class Game1Manager extends GameManager {
     @Override
     boolean isValidMove(Position from, Position to) {
         if (board.cells[from.x][from.y].piece.getClass().getCanonicalName() == "Piece.Pawn") {
-            if (board.cells[from.x][from.y].piece.team == 0) {// black 0
+            if (board.cells[from.x][from.y].piece.team == 1) {// black 0
                 if ((from.x - to.x == -2) && (from.x == 1) && (to.y == from.y)) {
                     if (board.cells[to.x - 1][to.y].piece == null) {
                         if (board.cells[to.x][to.y].piece != null) {// 잡을때
@@ -110,7 +110,7 @@ public class Game1Manager extends GameManager {
                         return true;
                 } else if (from.x - to.x == -1 && (from.y - to.y == -1 || from.y - to.y == 1)) {
                     if (board.cells[to.x][to.y].piece != null) {
-                        return (board.cells[to.x][to.y].piece.team == 1);
+                        return (board.cells[to.x][to.y].piece.team == 0);
                     } else
                         return false;
                 } else
@@ -132,7 +132,7 @@ public class Game1Manager extends GameManager {
                         return true;
                 } else if (from.x - to.x == 1 && (from.y - to.y == -1 || from.y - to.y == 1)) {
                     if (board.cells[to.x][to.y].piece != null) {// 잡을때
-                        return (board.cells[to.x][to.y].piece.team == 0);
+                        return (board.cells[to.x][to.y].piece.team == 1);
                     } else
                         return false;
                 } else
@@ -580,44 +580,6 @@ public class Game1Manager extends GameManager {
     }
 
 	private ChessBoard1 tempboard;
-    boolean isCheckmate() {// TODO : 泥댄겕硫붿씠�듃 �긽�솴�씤吏� �뙋�떒�빐二쇰뒗 硫붿꽌�뱶
-//        Position king = PositionofKing();
-//        for (int i = 0; i < 8; i++) {
-//            for (int j = 0; j < 8; j++) {
-//                if (isValidMove(king, board.cells[i][j].position)) {
-//                    if (!isCheck(board.cells[i][j].position)) {
-//                        return false;
-//                    }
-//                }
-//            }
-//        } // 기본룰적용시의 체크메이트
-//        tempboard = board;
-//        for (int a = 0; a < 8; a++) {
-//            for (int b = 0; b < 8; b++) {
-//                for (int c = 0; c < 8; c++) {
-//                    for (int d = 0; d < 8; d++) {
-//                        if (tempboard.cells[a][b].piece.team == turn % 2) {
-//                            if (isValidMove(tempboard.cells[a][b].position, tempboard.cells[c][d].position)) {
-//                                tempboard.cells[c][d] = tempboard.cells[a][b];
-//                                tempboard.cells[a][b] = null;
-//                                for (int i = 0; i < 8; i++) {
-//                                    for (int j = 0; j < 8; j++) {
-//                                        if (isValidMove(king, board.cells[i][j].position)) {
-//                                            if (!isCheck(board.cells[i][j].position)) {
-//                                                return false;
-//                                            }
-//                                        }
-//                                    }
-//                                }
-//                            }
-//                        }
-//                    }
-//                }
-//            }
-//        } //
-//        return true;
-        return false;
-    }
 
     boolean isStalemate() {//TODO : 스테일메이트 상황인지 판단해주는 메서드
         return false;//개발되기 전까지는 항상 false를 리턴하게끔 만들어주세요
