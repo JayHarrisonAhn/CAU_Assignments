@@ -63,7 +63,7 @@ public class StatusDisplay extends JPanel implements ActionListener {   //TODO :
             this.judge.setText("Check(검정팀의 왕이 공격받고 있습니다.)");
         }
         else if(team==Color.WHITE) {
-            this.judge.setText("Check(하얀팀의 왕이 공격받고 있습니다.)");
+            this.judge.setText("Check(하양팀의 왕이 공격받고 있습니다.)");
         }
         else {
             this.judge.setText("Check(??팀.)");
@@ -72,6 +72,26 @@ public class StatusDisplay extends JPanel implements ActionListener {   //TODO :
         this.judge.setVisible(true);
     }
 
+    public void showCheckmate(Color team) {
+        ImageIcon icon = new ImageIcon("src/View/panels/displayImages/Checkmate.jpg");
+        Image temp = icon.getImage();
+        temp = temp.getScaledInstance(100, 100, Image.SCALE_SMOOTH);
+        icon = new ImageIcon(temp);
+
+        this.judge.setIcon(icon);
+
+        if(team==Color.BLACK) {
+            this.judge.setText("아쉽지만 탈락입니다.(검정팀 Checkmate 패배)");
+        }
+        else if(team==Color.WHITE) {
+            this.judge.setText("아쉽지만 탈락입니다.(하양팀 Checkmate 패배)");
+        }
+        else {
+            this.judge.setText("Check(??팀.)");
+        }
+
+        this.judge.setVisible(true);
+    }
 
 
     @Override       //TODO : 제거
