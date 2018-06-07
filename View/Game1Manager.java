@@ -16,8 +16,14 @@ public class Game1Manager extends GameManager {
     int numOfTeams() {
         return 2;
     }
-
-
+    @Override
+    int turnToNext() {
+        return (turn + 2) % 4;
+    }
+    @Override
+    int turnToPrev() {
+        return (turn - 2) % 4;
+    }
 
 	public Game1Manager() {
         super();
@@ -38,62 +44,10 @@ public class Game1Manager extends GameManager {
         setVisible(true);
 	}
 
-
-    @Override
-    int[][] dangerMapping() {
-		int[][] out = new int[8][8];
-		for (int i = 0; i < 8; i++) {
-			for (int j = 0; j < 8; j++)
-				out[i][j] = 0;
-		}
-		Position t = new Position();
-		if (turn % 2 == 0) {// black turn
-			for (int i = 0; i < 8; i++) {
-				t.x=i;
-				for (int j = 0; j < 8; j++) {
-					t.y=j;
-					if (board.cells[i][j].piece != null) {
-						if (board.cells[i][j].piece.team == 1 && board.cells[i][j].piece.getClass().getCanonicalName() != "Piece.King") {
-							if (isValidMove(t, positionofKing())) {
-								out[t.x][t.y] = 1;
-//								System.out.printf("1 ");
-							}
-							else {
-//                                System.out.printf("0 ");
-                            }
-						}
-					}
-				}
-//				System.out.println();
-			}
-			return out;
-		} else {// white turn
-			for (int i = 0; i < 8; i++) {
-				t.x=i;
-				for (int j = 0; j < 8; j++) {
-					t.y=j;
-					if (board.cells[i][j].piece != null) {
-						if (board.cells[i][j].piece.team == 0 && board.cells[i][j].piece.getClass().getCanonicalName() != "Piece.King") {
-							if (isValidMove(t, positionofKing())) {
-								out[t.x][t.y] = 1;
-//								System.out.printf("1 ");
-							}
-							else {
-//                                System.out.printf("0 ");
-                            }
-						}
-					}
-				}
-//				System.out.println();
-			}
-			return out;
-		}
-	}
-
     @Override
     boolean isValidMove(Position from, Position to) {
         if (board.cells[from.x][from.y].piece.getClass().getCanonicalName() == "Piece.Pawn") {
-            if (board.cells[from.x][from.y].piece.team == 1) {// black 0
+            if (board.cells[from.x][from.y].piece.team == 2) {// black 0
                 if ((from.x - to.x == -2) && (from.x == 1) && (to.y == from.y)) {
                     if (board.cells[to.x - 1][to.y].piece == null) {
                         if (board.cells[to.x][to.y].piece != null) {// 잡을때
@@ -132,7 +86,7 @@ public class Game1Manager extends GameManager {
                         return true;
                 } else if (from.x - to.x == 1 && (from.y - to.y == -1 || from.y - to.y == 1)) {
                     if (board.cells[to.x][to.y].piece != null) {// 잡을때
-                        return (board.cells[to.x][to.y].piece.team == 1);
+                        return (board.cells[to.x][to.y].piece.team == 2);
                     } else
                         return false;
                 } else
@@ -148,7 +102,7 @@ public class Game1Manager extends GameManager {
                                 return false;
                         }
                         if (board.cells[to.x][to.y].piece != null) {// 잡을때
-                            return (board.cells[to.x][to.y].piece.team == 1);
+                            return (board.cells[to.x][to.y].piece.team == 2);
                         } else
                             return true;
                     } else {
@@ -157,7 +111,7 @@ public class Game1Manager extends GameManager {
                                 return false;
                         }
                         if (board.cells[to.x][to.y].piece != null) {// 잡을때
-                            return (board.cells[to.x][to.y].piece.team == 1);
+                            return (board.cells[to.x][to.y].piece.team == 2);
                         } else
                             return true;
                     }
@@ -168,7 +122,7 @@ public class Game1Manager extends GameManager {
                                 return false;
                         }
                         if (board.cells[to.x][to.y].piece != null) {// 잡을때
-                            return (board.cells[to.x][to.y].piece.team == 1);
+                            return (board.cells[to.x][to.y].piece.team == 2);
                         } else
                             return true;
                     } else {
@@ -177,7 +131,7 @@ public class Game1Manager extends GameManager {
                                 return false;
                         }
                         if (board.cells[to.x][to.y].piece != null) {// 잡을때
-                            return (board.cells[to.x][to.y].piece.team == 1);
+                            return (board.cells[to.x][to.y].piece.team == 2);
                         } else
                             return true;
                     }
@@ -233,22 +187,22 @@ public class Game1Manager extends GameManager {
             if (board.cells[from.x][from.y].piece.team == 0) {// black
                 if ((from.x + 2 == to.x) && (from.y + 1 == to.y || from.y - 1 == to.y)) {
                     if (board.cells[to.x][to.y].piece != null) {// 잡을때
-                        return (board.cells[to.x][to.y].piece.team == 1);
+                        return (board.cells[to.x][to.y].piece.team == 2);
                     } else
                         return true;
                 } else if ((from.x - 2 == to.x) && (from.y + 1 == to.y || from.y - 1 == to.y)) {
                     if (board.cells[to.x][to.y].piece != null) {// 잡을때
-                        return (board.cells[to.x][to.y].piece.team == 1);
+                        return (board.cells[to.x][to.y].piece.team == 2);
                     } else
                         return true;
                 } else if ((from.y + 2 == to.y) && (from.x + 1 == to.x || from.x - 1 == to.x)) {
                     if (board.cells[to.x][to.y].piece != null) {// 잡을때
-                        return (board.cells[to.x][to.y].piece.team == 1);
+                        return (board.cells[to.x][to.y].piece.team == 2);
                     } else
                         return true;
                 } else if ((from.y - 2 == to.y) && (from.x + 1 == to.x || from.x - 1 == to.x)) {
                     if (board.cells[to.x][to.y].piece != null) {// 잡을때
-                        return (board.cells[to.x][to.y].piece.team == 1);
+                        return (board.cells[to.x][to.y].piece.team == 2);
                     } else
                         return true;
                 } else
@@ -286,7 +240,7 @@ public class Game1Manager extends GameManager {
                                 return false;
                         }
                         if (board.cells[to.x][to.y].piece != null) {// 잡을때
-                            return (board.cells[to.x][to.y].piece.team == 1);
+                            return (board.cells[to.x][to.y].piece.team == 2);
                         } else
                             return true;
                     } else {
@@ -295,7 +249,7 @@ public class Game1Manager extends GameManager {
                                 return false;
                         }
                         if (board.cells[to.x][to.y].piece != null) {// 잡을때
-                            return (board.cells[to.x][to.y].piece.team == 1);
+                            return (board.cells[to.x][to.y].piece.team == 2);
                         } else
                             return true;
                     }
@@ -306,7 +260,7 @@ public class Game1Manager extends GameManager {
                                 return false;
                         }
                         if (board.cells[to.x][to.y].piece != null) {// 잡을때
-                            return (board.cells[to.x][to.y].piece.team == 1);
+                            return (board.cells[to.x][to.y].piece.team == 2);
                         } else
                             return true;
                     } else {
@@ -315,7 +269,7 @@ public class Game1Manager extends GameManager {
                                 return false;
                         }
                         if (board.cells[to.x][to.y].piece != null) {// 잡을때
-                            return (board.cells[to.x][to.y].piece.team == 1);
+                            return (board.cells[to.x][to.y].piece.team == 2);
                         } else
                             return true;
                     }
@@ -374,7 +328,7 @@ public class Game1Manager extends GameManager {
                                 return false;
                         }
                         if (board.cells[to.x][to.y].piece != null) {// 잡을때
-                            return (board.cells[to.x][to.y].piece.team == 1);
+                            return (board.cells[to.x][to.y].piece.team == 2);
                         } else
                             return true;
                     } else {
@@ -383,7 +337,7 @@ public class Game1Manager extends GameManager {
                                 return false;
                         }
                         if (board.cells[to.x][to.y].piece != null) {// 잡을때
-                            return (board.cells[to.x][to.y].piece.team == 1);
+                            return (board.cells[to.x][to.y].piece.team == 2);
                         } else
                             return true;
                     }
@@ -394,7 +348,7 @@ public class Game1Manager extends GameManager {
                                 return false;
                         }
                         if (board.cells[to.x][to.y].piece != null) {// 잡을때
-                            return (board.cells[to.x][to.y].piece.team == 1);
+                            return (board.cells[to.x][to.y].piece.team == 2);
                         } else
                             return true;
                     } else {
@@ -403,7 +357,7 @@ public class Game1Manager extends GameManager {
                                 return false;
                         }
                         if (board.cells[to.x][to.y].piece != null) {// 잡을때
-                            return (board.cells[to.x][to.y].piece.team == 1);
+                            return (board.cells[to.x][to.y].piece.team == 2);
                         } else
                             return true;
                     }
@@ -414,7 +368,7 @@ public class Game1Manager extends GameManager {
                                 return false;
                         }
                         if (board.cells[to.x][to.y].piece != null) {// 잡을때
-                            return (board.cells[to.x][to.y].piece.team == 1);
+                            return (board.cells[to.x][to.y].piece.team == 2);
                         } else
                             return true;
                     } else {
@@ -423,7 +377,7 @@ public class Game1Manager extends GameManager {
                                 return false;
                         }
                         if (board.cells[to.x][to.y].piece != null) {// 잡을때
-                            return (board.cells[to.x][to.y].piece.team == 1);
+                            return (board.cells[to.x][to.y].piece.team == 2);
                         } else
                             return true;
                     }
@@ -434,7 +388,7 @@ public class Game1Manager extends GameManager {
                                 return false;
                         }
                         if (board.cells[to.x][to.y].piece != null) {// 잡을때
-                            return (board.cells[to.x][to.y].piece.team == 1);
+                            return (board.cells[to.x][to.y].piece.team == 2);
                         } else
                             return true;
                     } else {
@@ -443,7 +397,7 @@ public class Game1Manager extends GameManager {
                                 return false;
                         }
                         if (board.cells[to.x][to.y].piece != null) {// 잡을때
-                            return (board.cells[to.x][to.y].piece.team == 1);
+                            return (board.cells[to.x][to.y].piece.team == 2);
                         } else
                             return true;
                     }
@@ -537,7 +491,7 @@ public class Game1Manager extends GameManager {
             if (board.cells[from.x][from.y].piece.team == 0) {// black 0
                 if (to.x - from.x <= 1 && to.x - from.x >= -1 && to.y - from.y <= 1 && to.y - from.y >= -1) {
                     if (board.cells[to.x][to.y].piece != null) {// 잡을때
-                        return (board.cells[to.x][to.y].piece.team == 1);
+                        return (board.cells[to.x][to.y].piece.team == 2);
                     } else
                         return true;
                     /*
@@ -548,7 +502,7 @@ public class Game1Manager extends GameManager {
                      * (board.cells[from.x][from.y].piece.team == 0) return false; } if
                      * (dangerMap[to.x][to.y] == 1) return false; else return true; } else {// white
                      * 1 if (board.cells[to.x][to.y].piece != null) { if
-                     * (board.cells[from.x][from.y].piece.team == 1) return false; } if
+                     * (board.cells[from.x][from.y].piece.team == 2) return false; } if
                      * (dangerMap[to.x][to.y] == 1) return false; else return true; }
                      */
                 } else
@@ -568,7 +522,7 @@ public class Game1Manager extends GameManager {
                      * (board.cells[from.x][from.y].piece.team == 0) return false; } if
                      * (dangerMap[to.x][to.y] == 1) return false; else return true; } else {// white
                      * 1 if (board.cells[to.x][to.y].piece != null) { if
-                     * (board.cells[from.x][from.y].piece.team == 1) return false; } if
+                     * (board.cells[from.x][from.y].piece.team == 2) return false; } if
                      * (dangerMap[to.x][to.y] == 1) return false; else return true; }
                      */
                 } else

@@ -11,7 +11,7 @@ import java.awt.event.MouseListener;
 
 public abstract class GameManager extends JFrame implements MouseListener {
     public GameManager() {
-        setSize(numOfWidth()*100, (numOfWidth()+1)*100);
+        setSize(800, 900);
         setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
         setLocationRelativeTo(null);
         add("North", display);
@@ -20,6 +20,9 @@ public abstract class GameManager extends JFrame implements MouseListener {
 
     abstract int numOfWidth();
     abstract int numOfTeams();
+    abstract int turnToNext();
+    abstract int turnToPrev();
+
 
     protected ChessBoard board;
     private ChessBoard tempBoard;
@@ -27,9 +30,6 @@ public abstract class GameManager extends JFrame implements MouseListener {
     protected int turn = 0;
     protected Position[] king = new Position[numOfTeams()];
     protected StatusDisplay display = new StatusDisplay();
-    protected int[][] danger = new int[numOfWidth()][numOfWidth()];
-
-    abstract int[][] dangerMapping();
     abstract boolean isValidMove(Position from, Position to);
 
     // MouseListener 援ы쁽
@@ -58,10 +58,10 @@ public abstract class GameManager extends JFrame implements MouseListener {
                         king[turn] = positionofKing();
                     }
                 }
-                turnToNext();
+                turn = turnToNext();
                 board.refresh();
 
-                if(isCheck(turn)) {
+                if(isCheck()) {
                     display.showCheck(board.cells[king[turn].x][king[turn].y].piece.color);
                 }
                 else {
@@ -80,7 +80,6 @@ public abstract class GameManager extends JFrame implements MouseListener {
         } else if (selected.piece == null) {    //아무것도 없는 칸을 선택했을 경우에는 아무것도 안하고 지나간다.
         } else {
             if (turn == selected.piece.team) {  //현재 차례인 플레이어가 자신의 말을 잡았을 경우
-                danger=dangerMapping();
 
 //				System.out.println(selected.piece.getClass().getCanonicalName());
                 validMoves(selected.position);
@@ -129,7 +128,7 @@ public abstract class GameManager extends JFrame implements MouseListener {
                                     temp = board.cells[to.x][to.y].piece;
                                     board.cells[to.x][to.y].piece = board.cells[from.x][from.y].piece;
                                     board.cells[from.x][from.y].piece = null;
-                                    if(!isCheck(turn)) {
+                                    if(!isCheck()) {
                                         board.cells[from.x][from.y].piece = board.cells[to.x][to.y].piece;
                                         board.cells[to.x][to.y].piece = temp;
                                         return false;
@@ -147,12 +146,12 @@ public abstract class GameManager extends JFrame implements MouseListener {
         return true;
     }
 
-    boolean isCheck(int now) {//다음 차례의 사람이 내 왕을 죽일 수 있는가?
+    boolean isCheck() {//다음 차례의 사람이 내 왕을 죽일 수 있는가?
         for (int i = 0; i < numOfWidth(); i++) {
             for (int j = 0; j < numOfWidth(); j++) {//탐색한다
                 if((board.cells[i][j].piece != null)) {//말이 있는 곳인데
-                    if(board.cells[i][j].piece.team == (now+1)%numOfTeams()) {//다음 상대의 말이
-                        if(isValidMove(board.cells[i][j].position, positionofKing(now))) {//내 왕의 위치로 올 수 있는가?
+                    if(board.cells[i][j].piece.team == turnToNext()) {//다음 상대의 말이
+                        if(isValidMove(board.cells[i][j].position, positionofKing(turn))) {//내 왕의 위치로 올 수 있는가?
                             return true;
                         }
                     }
@@ -187,8 +186,5 @@ public abstract class GameManager extends JFrame implements MouseListener {
         return null;
     }
 
-    private void turnToNext() {
-        turn = (turn + 1) % numOfTeams();
-        display.updateTurn(turn);
-    }
+
 }
