@@ -39,8 +39,8 @@ public class ChessBoard2 extends ChessBoard {
 		cells[13][9].piece = new Knight(0, WHITE_KNIGHT);
 		cells[13][5].piece = new Bishop(0, WHITE_BISHOP);
 		cells[13][8].piece = new Bishop(0, WHITE_BISHOP);
-		cells[13][6].piece = new King(0, WHITE_KING);
-		cells[13][7].piece = new Queen(0, WHITE_QUEEN);
+		cells[13][7].piece = new King(0, WHITE_KING);
+		cells[13][6].piece = new Queen(0, WHITE_QUEEN);
 		for (int i = 3; i < 11; i++) {
 			cells[12][i].piece = new Pawn(0, WHITE_PAWN);
 		}
@@ -51,8 +51,8 @@ public class ChessBoard2 extends ChessBoard {
 		cells[9][0].piece = new Knight(1, RED_KNIGHT);
 		cells[5][0].piece = new Bishop(1, RED_BISHOP);
 		cells[8][0].piece = new Bishop(1, RED_BISHOP);
-		cells[6][0].piece = new King(1, RED_KING);
-		cells[7][0].piece = new Queen(1, RED_QUEEN);
+		cells[7][0].piece = new King(1, RED_KING);
+		cells[6][0].piece = new Queen(1, RED_QUEEN);
 		for (int i = 3; i < 11; i++) {
 			cells[i][1].piece = new Pawn(1, RED_PAWN);
 		}
@@ -63,8 +63,8 @@ public class ChessBoard2 extends ChessBoard {
         cells[0][9].piece = new Knight(2, BLACK_KNIGHT);
         cells[0][5].piece = new Bishop(2, BLACK_BISHOP);
         cells[0][8].piece = new Bishop(2, BLACK_BISHOP);
-        cells[0][7].piece = new King(2, BLACK_KING);
-        cells[0][6].piece = new Queen(2, BLACK_QUEEN);
+        cells[0][6].piece = new King(2, BLACK_KING);
+        cells[0][7].piece = new Queen(2, BLACK_QUEEN);
         for (int i = 3; i < 11; i++) {
             cells[1][i].piece = new Pawn(2, BLACK_PAWN);
         }
@@ -75,8 +75,8 @@ public class ChessBoard2 extends ChessBoard {
         cells[9][13].piece = new Knight(3, GREEN_KNIGHT);
         cells[5][13].piece = new Bishop(3, GREEN_BISHOP);
         cells[8][13].piece = new Bishop(3, GREEN_BISHOP);
-        cells[7][13].piece = new King(3, GREEN_KING);
-        cells[6][13].piece = new Queen(3, GREEN_QUEEN);
+        cells[6][13].piece = new King(3, GREEN_KING);
+        cells[7][13].piece = new Queen(3, GREEN_QUEEN);
         for (int i = 3; i < 11; i++) {
             cells[i][12].piece = new Pawn(3, GREEN_PAWN);
         }

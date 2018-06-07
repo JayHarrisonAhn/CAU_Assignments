@@ -71,6 +71,13 @@ public abstract class GameManager extends JFrame implements MouseListener {
 
                 if(isCheckmate()) {
                     display.showCheckmate(board.cells[king[turn].x][king[turn].y].piece.color);
+                    Position loser = positionofKing();
+                    board.cells[loser.x][loser.y].setBackground(Color.RED);
+                    for(int i=0;i<numOfWidth();i++) {
+                        for(int j=0;j<numOfWidth();j++) {
+                            board.cells[i][j].removeMouseListener(this);
+                        }
+                    }
                 }
             }
             else if (selected.getBackground() == Color.YELLOW) {    //선택한 칸이 노란색일 경우(자기위치를 가리킨 경우) -> 실행취소시킨다.
