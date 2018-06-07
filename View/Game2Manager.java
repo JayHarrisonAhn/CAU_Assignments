@@ -46,6 +46,7 @@ public class Game2Manager extends GameManager {
 
     @Override
         //留� �넃湲� :white 0 red 1 black 2 green 3
+        //留� �넃湲� :white 0 red 1 black 2 green 3
     boolean isValidMove(Position from, Position to) {//TODO : from�뿉�꽌 to濡쒖쓽 �씠�룞�씠 媛��뒫�븳 寃껋씤吏� �뙋�떒�븯�뒗 硫붿꽌�뱶
         if(to.x<3&&to.y<3)
             return false;
@@ -58,7 +59,7 @@ public class Game2Manager extends GameManager {
         if (board.cells[from.x][from.y].piece.getClass().getCanonicalName() == "Piece.Pawn") {
             if (board.cells[from.x][from.y].piece.team == 2) {//black 2
                 if ((from.x - to.x == -2) && (from.x == 1) && (to.y == from.y)) {
-                    if (board.cells[to.x + 1][to.y].piece == null) {
+                    if (board.cells[to.x - 1][to.y].piece == null) {
                         if (board.cells[to.x][to.y].piece != null) {// �옟�쓣�븣
                             return false;
                         } else
@@ -133,7 +134,7 @@ public class Game2Manager extends GameManager {
                     return false;
             }else if (board.cells[from.x][from.y].piece.team == 1) {//red 1
                 if ((from.y - to.y == -2) && (from.y == 1) && (to.x == from.x)) {
-                    if (board.cells[to.x][to.y+1].piece == null) {
+                    if (board.cells[to.x][to.y-1].piece == null) {
                         if (board.cells[to.x][to.y].piece != null) {// �옟�쓣�븣
                             return false;
                         } else
