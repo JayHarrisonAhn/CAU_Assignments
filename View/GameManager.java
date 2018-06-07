@@ -59,6 +59,7 @@ public abstract class GameManager extends JFrame implements MouseListener {
                     }
                 }
                 turn = turnToNext();
+                display.updateTurn(turn);
                 board.refresh();
 
                 if(isCheck()) {

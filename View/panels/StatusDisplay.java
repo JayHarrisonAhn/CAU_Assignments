@@ -42,7 +42,13 @@ public class StatusDisplay extends JPanel implements ActionListener {   //TODO :
                 turn.setText("흰팀 차례");
                 break;
             case 1:
+                turn.setText("빨강팀 차례");
+                break;
+            case 2:
                 turn.setText("검정팀 차례");
+                break;
+            case 3:
+                turn.setText("초록팀 차례");
                 break;
         }
     }
