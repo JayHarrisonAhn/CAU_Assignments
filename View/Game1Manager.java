@@ -12,6 +12,7 @@ public class Game1Manager extends JFrame implements MouseListener {
 	private ChessBoard1 board = new ChessBoard1();
 	private StatusDisplay display = new StatusDisplay();
 	private int turn = 0;
+    Position[] king = new Position[2];
 	ChessPiece onHand;
 
 	public Game1Manager() {
@@ -28,6 +29,10 @@ public class Game1Manager extends JFrame implements MouseListener {
 			}
 		}
 		setVisible(true);
+
+		for(int i=0;i<2;i++) {  //king 초기화
+		    king[i] = PositionofKing(i);
+        }
 	}
 
 	// MouseListener 援ы쁽
@@ -52,8 +57,16 @@ public class Game1Manager extends JFrame implements MouseListener {
 		ChessBoardCell selected = (ChessBoardCell) e.getSource();
 
 
+
 		if (onHand != null) {                   //손에 체스를 들고있을 상황
 		    if (selected.getBackground() == Color.BLUE) {   //선택한 칸이 파란색일 경우(움직일 수 있는 곳인 경우)
+		        if(selected.piece != null) {
+                    if(selected.piece.getClass().getCanonicalName()=="Piece.King") {
+                        king[turn] = selected.position;
+                    }
+                }
+
+
                 selected.piece = onHand;
                 onHand = null;
                 board.refresh();
@@ -65,9 +78,6 @@ public class Game1Manager extends JFrame implements MouseListener {
                 else {
                     display.showNothing();
                 }
-
-
-
             }
             else if (selected.getBackground() == Color.YELLOW) {    //선택한 칸이 노란색일 경우(자기위치를 가리킨 경우) -> 실행취소시킨다.
                 selected.piece = onHand;
@@ -160,7 +170,7 @@ public class Game1Manager extends JFrame implements MouseListener {
 		}
 	}
 
-	Position PositionofKing() {// 왕의 위치찾기 turn ==0 black 임
+	private Position PositionofKing() {// 왕의 위치찾기 turn ==0 black 임
 		if (turn % 2 == 0) { // turn BLACK
 			for (int i = 0; i < 8; i++) {
 				for (int j = 0; j < 8; j++) {
@@ -185,6 +195,31 @@ public class Game1Manager extends JFrame implements MouseListener {
 			return null;
 		}
 	}
+    private Position PositionofKing(int team) {// 왕의 위치찾기 turn ==0 black 임
+        if (team % 2 == 0) { // turn BLACK
+            for (int i = 0; i < 8; i++) {
+                for (int j = 0; j < 8; j++) {
+                    if (board.cells[i][j].piece != null) {
+                        if ((board.cells[i][j].piece.getClass().getCanonicalName() == "Piece.King") && (board.cells[i][j].piece.team == 0)) {
+                            return (board.cells[i][j].position);
+                        }
+                    }
+                }
+            }
+            return null;
+        } else { // turn WHITE
+            for (int i = 0; i < 8; i++) {
+                for (int j = 0; j < 8; j++) {
+                    if (board.cells[i][j].piece != null) {
+                        if ((board.cells[i][j].piece.getClass().getCanonicalName() == "Piece.King") && (board.cells[i][j].piece.team == 1)) {
+                            return (board.cells[i][j].position);
+                        }
+                    }
+                }
+            }
+            return null;
+        }
+    }
 
     boolean isValidMove(Position from, Position to) {
         if (board.cells[from.x][from.y].piece.getClass().getCanonicalName() == "Piece.Pawn") {
@@ -779,8 +814,45 @@ public class Game1Manager extends JFrame implements MouseListener {
 		return false;
 	}
 
-    boolean isCheckmate() {//TODO : 체크메이트 상황인지 판단해주는 메서드
-        return false;//개발되기 전까지는 항상 false를 리턴하게끔 만들어주세요
+	ChessBoard tempboard;
+
+    boolean isCheckmate() {// TODO : 泥댄겕硫붿씠�듃 �긽�솴�씤吏� �뙋�떒�빐二쇰뒗 硫붿꽌�뱶
+//        Position king = PositionofKing();
+//        for (int i = 0; i < 8; i++) {
+//            for (int j = 0; j < 8; j++) {
+//                if (isValidMove(king, board.cells[i][j].position)) {
+//                    if (!isCheck(board.cells[i][j].position)) {
+//                        return false;
+//                    }
+//                }
+//            }
+//        } // 기본룰적용시의 체크메이트
+//        tempboard = board;
+//        for (int a = 0; a < 8; a++) {
+//            for (int b = 0; b < 8; b++) {
+//                for (int c = 0; c < 8; c++) {
+//                    for (int d = 0; d < 8; d++) {
+//                        if (tempboard.cells[a][b].piece.team == turn % 2) {
+//                            if (isValidMove(tempboard.cells[a][b].position, tempboard.cells[c][d].position)) {
+//                                tempboard.cells[c][d] = tempboard.cells[a][b];
+//                                tempboard.cells[a][b] = null;
+//                                for (int i = 0; i < 8; i++) {
+//                                    for (int j = 0; j < 8; j++) {
+//                                        if (isValidMove(king, board.cells[i][j].position)) {
+//                                            if (!isCheck(board.cells[i][j].position)) {
+//                                                return false;
+//                                            }
+//                                        }
+//                                    }
+//                                }
+//                            }
+//                        }
+//                    }
+//                }
+//            }
+//        } //
+//        return true;
+        return false;
     }
 
     boolean isStalemate() {//TODO : 스테일메이트 상황인지 판단해주는 메서드

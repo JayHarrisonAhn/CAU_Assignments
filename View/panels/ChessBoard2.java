@@ -101,10 +101,10 @@ public class ChessBoard2 extends ChessBoard {
 	    		
 	    		if (cells[i][j].piece!=null) {
 	    			cells[i][j].piece.image.getScaledInstance(10, 10, Image.SCALE_SMOOTH);
-	    			cells[i][j].setIcon(new ImageIcon(cells[i][j].piece.image));
+	    			cells[i][j].setImage(cells[i][j].piece.image);
 	    		}
 	    		else {
-	    			cells[i][j].setIcon(null);
+	    			cells[i][j].setImage(null);
 	    		}
 	    	}
 		}
