@@ -1,13 +1,10 @@
 package View.panels;
 
 import Piece.*;
-
-import javax.swing.*;
 import java.awt.*;
 import static Piece.ChessPieceSprite.ChessPieceSpriteType.*;
 
 public class ChessBoard1 extends ChessBoard {
-	public ChessBoardCell[][] cells = new ChessBoardCell[8][8];
 	
 	public ChessBoard1() {
 		//initialize board
@@ -15,6 +12,7 @@ public class ChessBoard1 extends ChessBoard {
 	    setLayout(new GridLayout(8,8));
 		
 		//initialize cells
+		super.cells = new ChessBoardCell[8][8];
 		for(int i=0; i<8; i++) {
 	    	for(int j=0; j<8; j++) {
 	    		cells[i][j] = new ChessBoardCell();
