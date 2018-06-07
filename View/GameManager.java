@@ -28,7 +28,7 @@ public abstract class GameManager extends JFrame implements MouseListener {
     private ChessBoard tempBoard;
     protected ChessPiece onHand;
     protected int turn = 0;
-    protected Position[] king = new Position[numOfTeams()];
+    protected Position[] king = new Position[4];
     protected StatusDisplay display = new StatusDisplay();
     abstract boolean isValidMove(Position from, Position to);
 
