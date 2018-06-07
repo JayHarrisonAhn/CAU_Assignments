@@ -35,8 +35,8 @@ public class ChessBoard1 extends ChessBoard {
 		cells[0][6].piece = new Knight(2, BLACK_KNIGHT);
 		cells[0][2].piece = new Bishop(2, BLACK_BISHOP);
 		cells[0][5].piece = new Bishop(2, BLACK_BISHOP);
-		cells[0][4].piece = new King(2, BLACK_KING);
-		cells[0][3].piece = new Queen(2, BLACK_QUEEN);
+		cells[0][3].piece = new King(2, BLACK_KING);
+		cells[0][4].piece = new Queen(2, BLACK_QUEEN);
 		for (int i = 0; i < 8; i++) {
 			cells[1][i].piece = new Pawn(2, BLACK_PAWN);
 		}

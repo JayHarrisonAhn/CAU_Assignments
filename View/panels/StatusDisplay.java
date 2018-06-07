@@ -65,11 +65,17 @@ public class StatusDisplay extends JPanel implements ActionListener {   //TODO :
 
         this.judge.setIcon(icon);
 
-        if(team==Color.BLACK) {
+        if(team==Color.WHITE) {
+            this.judge.setText("Check(하양팀의 왕이 공격받고 있습니다.)");
+        }
+        else if(team==Color.RED) {
+            this.judge.setText("Check(빨강팀의 왕이 공격받고 있습니다.)");
+        }
+        else if(team==Color.BLACK) {
             this.judge.setText("Check(검정팀의 왕이 공격받고 있습니다.)");
         }
-        else if(team==Color.WHITE) {
-            this.judge.setText("Check(하양팀의 왕이 공격받고 있습니다.)");
+        else if(team==Color.GREEN) {
+            this.judge.setText("Check(초록팀의 왕이 공격받고 있습니다.)");
         }
         else {
             this.judge.setText("Check(??팀.)");
@@ -86,16 +92,27 @@ public class StatusDisplay extends JPanel implements ActionListener {   //TODO :
 
         this.judge.setIcon(icon);
 
-        if(team==Color.BLACK) {
-            this.judge.setText("아쉽지만 탈락입니다.(검정팀 Checkmate 패배)");
-        }
-        else if(team==Color.WHITE) {
+        if(team==Color.WHITE) {
             this.judge.setText("아쉽지만 탈락입니다.(하양팀 Checkmate 패배)");
         }
+        else if(team==Color.RED) {
+            this.judge.setText("아쉽지만 탈락입니다.(빨강팀 Checkmate 패배)");
+        }
+        else if(team==Color.BLACK) {
+            this.judge.setText("아쉽지만 탈락입니다.(검정팀 Checkmate 패배)");
+        }
+        else if(team==Color.GREEN) {
+            this.judge.setText("아쉽지만 탈락입니다.(초록팀 Checkmate 패배)");
+        }
         else {
-            this.judge.setText("Check(??팀.)");
+            this.judge.setText("탈락(??팀.)");
         }
 
+        this.judge.setVisible(true);
+    }
+
+    public void showStalemate() {
+        this.judge.setText("Stalemate 무승부입니다.");
         this.judge.setVisible(true);
     }
 
