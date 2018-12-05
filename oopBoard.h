@@ -19,14 +19,16 @@ public:
 
 	vector<GameRecord> gameRecords;
 
-	void saveMyScore(string name) {
+	int maxScore() {
+		if (gameRecords.size() == 0) {
+			return -1;
+		}
 		int maxScore = 0;
 		for (int i = 0;i < gameRecords.size();i++) {
-			if (gameRecords[i].movecount > i)
+			if (gameRecords[i].movecount > maxScore)
 				maxScore = gameRecords[i].movecount;
 		}
-		ofstream file("score.txt", ios::app);
-		file << endl << name + " " + to_string(maxScore);
+		return maxScore;
 	}
 
 	Board() {

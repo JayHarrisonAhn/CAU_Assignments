@@ -43,12 +43,17 @@ int main(int argc, const char * argv[]) {
 				board.shuffle();
 				break;
 			case '2':
-				board.message = "Enter your name (Your name should not contain blank)";
-				display.refresh();
-				cout << endl << "name : ";
-				cin >> name;
-				board.saveMyScore(name);
-				board.message = name+"'s score is saved";
+				if (board.maxScore() > 0) {
+					board.message = "Enter your name (Your name should not contain blank)";
+					display.refresh();
+					cout << endl << "name : ";
+					cin >> name;
+					ofstream file("score.txt", ios::app);
+					file << endl << name + " " + to_string(board.maxScore());
+					board.message = name + "'s score is saved";
+				} else {
+					board.message = "There's no score to save.";
+				}
 				break;
 			case '3':
 				ifstream inFile("score.txt");
