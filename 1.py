@@ -6,8 +6,8 @@ n = int(input())
 
 k = 0
 k_powered = 1
-while k_powered <= n :
+while k_powered <= n:
     k += 1
     k_powered *= 2
-    
+
 print(k-1)

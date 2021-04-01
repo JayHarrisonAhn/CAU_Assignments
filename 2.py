@@ -12,7 +12,7 @@ for i in range(0, int(len(word)/2)):
     if word[i] != word[len(word)-1-i]:
         isPalindrome = False
         break
-    
+
 if isPalindrome:
     print(f"{word} is Palindrome")
 else:
