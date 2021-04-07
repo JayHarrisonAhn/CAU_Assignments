@@ -1,4 +1,10 @@
 
+#include <stdio.h>
+
+#include "threads/thread.h"
+#include "devices/timer.h"
+#include "threads/synch.h"
+#include "projects/crossroads/vehicle.h"
 #include "projects/crossroads/map.h"
 
 
