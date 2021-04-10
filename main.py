@@ -78,31 +78,52 @@ class Syntax:
     list(map(lambda spec: spec.reset(), cls.specs))
 
 
-def printToken(token):
-  if(token[0] == 'WHITESPACE'):
-    return
+def printToken(token, file):
+  if(token[0] == 'WHITESPACE'): return
   else:
-    print(f"결과 : {token[0]}\t{token[1]}")
+    log = f"{token[0]}\t{token[1]}"
+    print(log)
+    file.write(log+"\n")
 
 
 def main(input):
-  f = open(input, 'rt')
+  f_in = open(input, 'rt')
+  f_out = open(input+"_output.txt", 'wt')
 
   last_syntax_result = []
   while(True):
-    symbol = f.read(1)
+    symbol = f_in.read(1)
     if(symbol == ''):
       if(last_syntax_result):
-        printToken(last_syntax_result[0])
+        printToken(last_syntax_result[0], f_out)
       break
 
     syntax_result = list(filter(lambda syntax: syntax is not None, Syntax.input(symbol)))
     if(not syntax_result):
       if(last_syntax_result):
-        printToken(last_syntax_result[0])
+        printToken(last_syntax_result[0], f_out)
         Syntax.reset()
-        f.seek(f.tell() - 1, os.SEEK_SET)
+        f_in.seek(f_in.tell() - 1, os.SEEK_SET)
     last_syntax_result = syntax_result
+
+  f_in.close()
+  f_out.close()
+
+
+  # Auto Test Code Below (Delete for submit file)
+  try:
+    with open(input.replace('.java','')+".out.txt", 'rt') as f_autotest_out:
+      with open(input+"_output.txt", 'rt') as f_result:
+        while True:
+          autotest_out = f_autotest_out.readline()
+          autotest_in = f_result.readline()
+          if((not autotest_in) | (not autotest_out)): break
+          if(autotest_in != autotest_out):
+            print("[Autotest] Fail")
+            return
+        print("[Autotest] Success")
+  except:
+    return
 
 
 if __name__ == "__main__":

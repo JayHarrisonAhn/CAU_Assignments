@@ -1,0 +1,4 @@
+ID	intager
+INT	int
+ID	ager
+ID	INTintintint
