@@ -1,0 +1,11 @@
+IF	if
+LPAREN	(
+BOOLEAN STRING	true
+RPAREN	)
+LBRACE	{
+STRING	"Hello World"
+RBRACE	}
+ELSE	else
+LBRACE	{
+STRING	"It's Java Time!"
+RBRACE	}
