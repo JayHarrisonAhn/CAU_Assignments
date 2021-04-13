@@ -50,22 +50,175 @@ class Syntax:
       [None, None, 4],
       [None, None, None]
     ], [4]),
+    DFA_Graph('CHAR', [
+      ["c", "h", "a", "r"],
+      [2, None, None, None],
+      [None, 3, None, None],
+      [None, None, 4, None],
+      [None, None, None, 5],
+      [None, None, None, None]
+    ], [5]),
+    DFA_Graph('BOOLEAN', [
+      ["b", "o", "o", "l", "e", "a", "n"],
+      [2, None, None, None, None, None, None],
+      [None, 3, None, None, None, None, None],
+      [None, None, 4, None, None, None, None],
+      [None, None, None, 5, None, None, None],
+      [None, None, None, None, 6, None, None],
+      [None, None, None, None, None, 7, None],
+      [None, None, None, None, None, None, 8],
+      [None, None, None, None, None, None, None],
+    ], [8]),
+    DFA_Graph('STRING', [
+      ["s", "t", "r", "i", "n", "g"],
+      [2, None, None, None, None, None],
+      [None, 3, None, None, None, None],
+      [None, None, 4, None, None, None],
+      [None, None, None, 5, None, None],
+      [None, None, None, None, 6, None],
+      [None, None, None, None, None, 7],
+      [None, None, None, None, None, None],
+    ], [7]),
+    DFA_Graph('SIGNED INTEGER', [
+      ["-", "0123456789"],
+      [2, 3],
+      [None, 3],
+      [None, 3],
+    ], [3]),
+    DFA_Graph('SINGLE CHARACTER', [ # 수정중
+      ["'", None],
+      [2, None],
+      [None, 3],
+      [4, None],
+      [None, None],
+    ], [4]),
+    DFA_Graph('BOOLEAN STRING', [
+      ["t", "r", "u", "e", "f", "a", "l", "s"],
+      [2, None, None, None, 5, None, None, None],
+      [None, 3, None, None, None, None, None, None],
+      [None, None, 4, None, None, None, None, None],
+      [None, None, None, 9, None, None, None, None],
+      [None, None, None, None, None, 6, None, None],
+      [None, None, None, None, None, None, 7, None],
+      [None, None, None, None, None, None, None, 8],
+      [None, None, None, 9, None, None, None, None],
+      [None, None, None, None, None, None, None, None]
+    ], [9]),
     DFA_Graph('STRING', [ #Literal String
       ['"', None],
       [2, None],
       [3, 2],
       [None, None]
     ], [3]),
-    DFA_Graph('WHITESPACE', [
-      [[" ", '\t', '\n']],
+
+
+    DFA_Graph('IF', [
+      ["i", "f"],
+      [2, None],
+      [None, 3],
+      [None, None],
+    ], [3]),
+    DFA_Graph('ELSE', [
+      ["e", "l", "s"],
+      [2, None, None],
+      [None, 3, None],
+      [None, None, 4],
+      [5, None, None],
+      [None, None, None]
+    ], [5]),
+    DFA_Graph('WHILE', [
+      ["w", "h", "i", "l", "e"],
+      [2, None, None, None, None],
+      [None, 3, None, None, None],
+      [None, None, 4, None, None],
+      [None, None, None, 5, None],
+      [None, None, None, None, 6],
+      [None, None, None, None, None]
+    ], [6]),
+    DFA_Graph('CLASS', [
+      ["c", "l", "a", "s"],
+      [2, None, None, None],
+      [None, 3, None, None],
+      [None, None, 4, None],
+      [None, None, None, 5],
+      [None, None, None, 6],
+      [None, None, None, None]
+    ], [6]),
+    DFA_Graph('RETURN', [
+      ["r", "e", "t", "u", "n"],
+      [2, None, None, None, None],
+      [None, 3, None, None, None],
+      [None, None, 4, None, None],
+      [None, None, None, 5, None],
+      [6, None, None, None, None],
+      [None, None, None, None, 7],
+      [None, None, None, None, None],
+    ], [7]),
+    DFA_Graph('ARITHMATIC OP', [
+      ["+-*/"],
       [2],
-      [2]
+      [None]
+    ], [2]),
+    DFA_Graph('ASSIGNMENT OP', [ #Assignment와 comparison 분리 필요
+      ["="],
+      [2],
+      [None]
+    ], [2]),
+    DFA_Graph('COMPARISON OP', [ #Comparison symbol 분리 필요
+      ["=", "<>", ">"],
+      [2],
+      [None]
+    ], [2]),
+    DFA_Graph('TERMINATE', [
+      [";"],
+      [2],
+      [None]
+    ], [2]),
+    DFA_Graph('LPAREN', [ #Terminating Symbol과 기타 Symbol 분리 필요
+      ["("],
+      [2],
+      [None]
+    ], [2]),
+    DFA_Graph('RPAREN', [
+      [")"],
+      [2],
+      [None]
+    ], [2]),
+    DFA_Graph('LBRACE', [
+      ["{"],
+      [2],
+      [None]
+    ], [2]),
+    DFA_Graph('RBRACE', [
+      ["}"],
+      [2],
+      [None]
+    ], [2]),
+    DFA_Graph('LBRACKET', [
+      ["["],
+      [2],
+      [None]
+    ], [2]),
+    DFA_Graph('RBRACKET', [
+      ["]"],
+      [2],
+      [None]
+    ], [2]),
+    DFA_Graph('SEPARATE', [
+      [","],
+      [2],
+      [None]
     ], [2]),
     DFA_Graph('ID', [
       ["abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ_", "0123456789"],
       [2, None],
       [2, 2]
-    ], [2])
+    ], [2]),
+    DFA_Graph('WHITESPACE', [
+      [[" ", '\t', '\n']],
+      [2],
+      [2]
+    ], [2]),
   ]
 
   @classmethod
