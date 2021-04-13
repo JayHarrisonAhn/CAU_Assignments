@@ -257,14 +257,21 @@ def main(input):
   f_in = open(input, 'rt')
   f_out = open(input+"_output.txt", 'wt')
 
+  current_line = 1
   last_syntax_result = []
   last_parsed_token = None
+  last_parsed_token_line = 0
+  
   while(True):
     symbol = f_in.read(1) #Read each symbol
+    if(symbol == '\n'):
+      current_line += 1
     if(symbol == ''): #end of file
       if(last_syntax_result):
         printToken(last_syntax_result[0], f_out)
         last_parsed_token = last_syntax_result[0]
+      else:
+        print(f"Lexical Analyzer Error : Cannot Parse at line {last_parsed_token_line}")
       break
 
     syntax_result = list(filter(lambda syntax: syntax is not None, Syntax.input(symbol, last_parsed_token)))
@@ -272,8 +279,12 @@ def main(input):
       if(last_syntax_result): #token parse succeeded
         printToken(last_syntax_result[0], f_out)
         last_parsed_token = last_syntax_result[0]
+        last_parsed_token_line = current_line
         Syntax.reset()
+        if(symbol == '\n'):
+          current_line -= 1
         f_in.seek(f_in.tell() - 1, os.SEEK_SET)
+        
     last_syntax_result = syntax_result
 
   f_in.close()
