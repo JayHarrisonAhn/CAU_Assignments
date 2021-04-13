@@ -79,19 +79,15 @@ class Syntax:
       [None, None, None, None, None, 7],
       [None, None, None, None, None, None],
     ], [7]),
-    DFA_Graph('SIGNED INTEGER', [
-      ["-", "0123456789"],
-      [2, 3],
-      [None, 3],
-      [None, 3],
-    ], [3]),
-    DFA_Graph('SINGLE CHARACTER', [ # 수정중
-      ["'", None],
-      [2, None],
-      [None, 3],
-      [4, None],
-      [None, None],
-    ], [4]),
+    DFA_Graph('SINGLE CHARACTER', [
+      ["'", "1234567890", "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ", None],
+      [2, None, None, None],
+      [None, 3, 4, 5],
+      [6, None, None, None],
+      [6, None, None, None],
+      [6, None, None, None],
+      [None, None, None, None],
+    ], [6]),
     DFA_Graph('BOOLEAN STRING', [
       ["t", "r", "u", "e", "f", "a", "l", "s"],
       [2, None, None, None, 5, None, None, None],
@@ -104,7 +100,7 @@ class Syntax:
       [None, None, None, 9, None, None, None, None],
       [None, None, None, None, None, None, None, None]
     ], [9]),
-    DFA_Graph('STRING', [ #Literal String
+    DFA_Graph('STRING', [
       ['"', None],
       [2, None],
       [3, 2],
@@ -157,22 +153,33 @@ class Syntax:
       [2],
       [None]
     ], [2]),
-    DFA_Graph('OP_ASSIGNMENT', [ #Assignment와 comparison 분리 필요
+    DFA_Graph('OP_ASSIGNMENT', [
       ["="],
       [2],
       [None]
     ], [2]),
-    DFA_Graph('OP_COMPARISON', [ #Comparison symbol 분리 필요
-      ["=", "<>", ">"],
-      [2],
-      [None]
-    ], [2]),
+    DFA_Graph('OP_COMPARISON', [
+      [">", "<", "!", "="],
+      [2, 3, 4, 5],
+      [None, None, None, 6],
+      [None, None, None, 6],
+      [None, None, None, 7],
+      [None, None, None, 7],
+      [None, None, None, None],
+      [None, None, None, None],
+    ], [2, 3, 6, 7]),
+    DFA_Graph('SIGNED INTEGER', [
+      ["-", "0123456789"],
+      [2, 3],
+      [None, 3],
+      [None, 3],
+    ], [3]),
     DFA_Graph('TERMINATE', [
       [";"],
       [2],
       [None]
     ], [2]),
-    DFA_Graph('LPAREN', [ #Terminating Symbol과 기타 Symbol 분리 필요
+    DFA_Graph('LPAREN', [
       ["("],
       [2],
       [None]
@@ -208,10 +215,14 @@ class Syntax:
       [None]
     ], [2]),
     DFA_Graph('ID', [
-      ["abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ_", "0123456789"],
-      [2, None],
-      [2, 2]
-    ], [2]),
+      ["abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ", "0123456789", "_"],
+      [2, None, 3],
+      [4, 5, 6],
+      [4, 5, 6],
+      [4, 5, 6],
+      [4, 5, 6],
+      [4, 5, 6],
+    ], [2, 3, 4, 5, 6]),
     DFA_Graph('WHITESPACE', [
       [[" ", '\t', '\n']],
       [2],
