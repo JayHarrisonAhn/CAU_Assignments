@@ -110,8 +110,6 @@ class Syntax:
       [3, 2],
       [None, None]
     ], [3]),
-
-
     DFA_Graph('IF', [
       ["i", "f"],
       [2, None],
@@ -222,17 +220,17 @@ class Syntax:
   ]
 
   @classmethod
-  def input(cls, symbol):
+  def input(cls, symbol): #input symbol to every DFA.
     result = list(map(lambda spec: spec.input_symbol(symbol), cls.specs))
     return result
 
   @classmethod
-  def reset(cls):
+  def reset(cls): #reset all DFAs.
     list(map(lambda spec: spec.reset(), cls.specs))
 
 
-def printToken(token, file):
-  if(token[0] == 'WHITESPACE'): return
+def printToken(token, file): #output token
+  if(token[0] == 'WHITESPACE'): return #skip WS token.
   else:
     log = f"{token[0]}\t{token[1]}"
     print(log)
@@ -245,15 +243,15 @@ def main(input):
 
   last_syntax_result = []
   while(True):
-    symbol = f_in.read(1)
-    if(symbol == ''):
+    symbol = f_in.read(1) #Read each symbol
+    if(symbol == ''): #end of file
       if(last_syntax_result):
         printToken(last_syntax_result[0], f_out)
       break
 
     syntax_result = list(filter(lambda syntax: syntax is not None, Syntax.input(symbol)))
     if(not syntax_result):
-      if(last_syntax_result):
+      if(last_syntax_result): #token parse succeeded
         printToken(last_syntax_result[0], f_out)
         Syntax.reset()
         f_in.seek(f_in.tell() - 1, os.SEEK_SET)
@@ -263,7 +261,7 @@ def main(input):
   f_out.close()
 
 
-  # Auto Test Code Below (Delete for submit file)
+  # Auto Test Code Below (Remove for submit file)
   try:
     with open(input.replace('.java','')+".out.txt", 'rt') as f_autotest_out:
       with open(input+"_output.txt", 'rt') as f_result:
