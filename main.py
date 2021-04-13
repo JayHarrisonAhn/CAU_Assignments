@@ -4,10 +4,11 @@ import sys
 import os
 
 class DFA_Graph:
-  def __init__(self, token, table, finish_states):
+  def __init__(self, token, table, finish_states, deny_last_token):
     self.token = token
     self.table = table
     self.finish_states = finish_states
+    self.deny_last_token = deny_last_token
     self.reset()
 
   def reset(self):
@@ -22,7 +23,11 @@ class DFA_Graph:
         return i
     return None
 
-  def input_symbol(self, symbol):
+  def input_symbol(self, symbol, last_parsed_token):
+    if(last_parsed_token): #Terminate after deny_last_token
+      if(last_parsed_token[0] in self.deny_last_token):
+        self.current_state = None
+
     if(self.current_state is None): #Already Terminated
       return None
 
@@ -49,7 +54,7 @@ class Syntax:
       [None, 3, None],
       [None, None, 4],
       [None, None, None]
-    ], [4]),
+    ], [4], []),
     DFA_Graph('CHAR', [
       ["c", "h", "a", "r"],
       [2, None, None, None],
@@ -57,7 +62,7 @@ class Syntax:
       [None, None, 4, None],
       [None, None, None, 5],
       [None, None, None, None]
-    ], [5]),
+    ], [5], []),
     DFA_Graph('BOOLEAN', [
       ["b", "o", "o", "l", "e", "a", "n"],
       [2, None, None, None, None, None, None],
@@ -68,7 +73,7 @@ class Syntax:
       [None, None, None, None, None, 7, None],
       [None, None, None, None, None, None, 8],
       [None, None, None, None, None, None, None],
-    ], [8]),
+    ], [8], []),
     DFA_Graph('STRING', [
       ["s", "t", "r", "i", "n", "g"],
       [2, None, None, None, None, None],
@@ -78,7 +83,7 @@ class Syntax:
       [None, None, None, None, 6, None],
       [None, None, None, None, None, 7],
       [None, None, None, None, None, None],
-    ], [7]),
+    ], [7], []),
     DFA_Graph('SINGLE CHARACTER', [
       ["'", "1234567890", "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ", None],
       [2, None, None, None],
@@ -87,7 +92,7 @@ class Syntax:
       [6, None, None, None],
       [6, None, None, None],
       [None, None, None, None],
-    ], [6]),
+    ], [6], []),
     DFA_Graph('BOOLEAN STRING', [
       ["t", "r", "u", "e", "f", "a", "l", "s"],
       [2, None, None, None, 5, None, None, None],
@@ -99,19 +104,19 @@ class Syntax:
       [None, None, None, None, None, None, None, 8],
       [None, None, None, 9, None, None, None, None],
       [None, None, None, None, None, None, None, None]
-    ], [9]),
+    ], [9], []),
     DFA_Graph('STRING', [
       ['"', None],
       [2, None],
       [3, 2],
       [None, None]
-    ], [3]),
+    ], [3], []),
     DFA_Graph('IF', [
       ["i", "f"],
       [2, None],
       [None, 3],
       [None, None],
-    ], [3]),
+    ], [3], []),
     DFA_Graph('ELSE', [
       ["e", "l", "s"],
       [2, None, None],
@@ -119,7 +124,7 @@ class Syntax:
       [None, None, 4],
       [5, None, None],
       [None, None, None]
-    ], [5]),
+    ], [5], []),
     DFA_Graph('WHILE', [
       ["w", "h", "i", "l", "e"],
       [2, None, None, None, None],
@@ -128,7 +133,7 @@ class Syntax:
       [None, None, None, 5, None],
       [None, None, None, None, 6],
       [None, None, None, None, None]
-    ], [6]),
+    ], [6], []),
     DFA_Graph('CLASS', [
       ["c", "l", "a", "s"],
       [2, None, None, None],
@@ -137,7 +142,7 @@ class Syntax:
       [None, None, None, 5],
       [None, None, None, 6],
       [None, None, None, None]
-    ], [6]),
+    ], [6], []),
     DFA_Graph('RETURN', [
       ["r", "e", "t", "u", "n"],
       [2, None, None, None, None],
@@ -147,17 +152,17 @@ class Syntax:
       [6, None, None, None, None],
       [None, None, None, None, 7],
       [None, None, None, None, None],
-    ], [7]),
+    ], [7], []),
     DFA_Graph('OP_ARITHMATIC', [
       ["+-*/"],
       [2],
       [None]
-    ], [2]),
+    ], [2], []),
     DFA_Graph('OP_ASSIGNMENT', [
       ["="],
       [2],
       [None]
-    ], [2]),
+    ], [2], []),
     DFA_Graph('OP_COMPARISON', [
       [">", "<", "!", "="],
       [2, 3, 4, 5],
@@ -167,53 +172,53 @@ class Syntax:
       [None, None, None, 7],
       [None, None, None, None],
       [None, None, None, None],
-    ], [2, 3, 6, 7]),
+    ], [2, 3, 6, 7], []),
     DFA_Graph('SIGNED INTEGER', [
       ["-", "0123456789"],
       [2, 3],
       [None, 3],
       [None, 3],
-    ], [3]),
+    ], [3], ['ID', 'SIGNED INTEGER']),
     DFA_Graph('TERMINATE', [
       [";"],
       [2],
       [None]
-    ], [2]),
+    ], [2], []),
     DFA_Graph('LPAREN', [
       ["("],
       [2],
       [None]
-    ], [2]),
+    ], [2], []),
     DFA_Graph('RPAREN', [
       [")"],
       [2],
       [None]
-    ], [2]),
+    ], [2], []),
     DFA_Graph('LBRACE', [
       ["{"],
       [2],
       [None]
-    ], [2]),
+    ], [2], []),
     DFA_Graph('RBRACE', [
       ["}"],
       [2],
       [None]
-    ], [2]),
+    ], [2], []),
     DFA_Graph('LBRACKET', [
       ["["],
       [2],
       [None]
-    ], [2]),
+    ], [2], []),
     DFA_Graph('RBRACKET', [
       ["]"],
       [2],
       [None]
-    ], [2]),
+    ], [2], []),
     DFA_Graph('SEPARATE', [
       [","],
       [2],
       [None]
-    ], [2]),
+    ], [2], []),
     DFA_Graph('ID', [
       ["abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ", "0123456789", "_"],
       [2, None, 3],
@@ -222,17 +227,17 @@ class Syntax:
       [4, 5, 6],
       [4, 5, 6],
       [4, 5, 6],
-    ], [2, 3, 4, 5, 6]),
+    ], [2, 3, 4, 5, 6], []),
     DFA_Graph('WHITESPACE', [
       [[" ", '\t', '\n']],
       [2],
       [2]
-    ], [2]),
+    ], [2], [])
   ]
 
   @classmethod
-  def input(cls, symbol): #input symbol to every DFA.
-    result = list(map(lambda spec: spec.input_symbol(symbol), cls.specs))
+  def input(cls, symbol, last_parsed_token): #input symbol to every DFA.
+    result = list(map(lambda spec: spec.input_symbol(symbol, last_parsed_token), cls.specs))
     return result
 
   @classmethod
@@ -253,17 +258,20 @@ def main(input):
   f_out = open(input+"_output.txt", 'wt')
 
   last_syntax_result = []
+  last_parsed_token = None
   while(True):
     symbol = f_in.read(1) #Read each symbol
     if(symbol == ''): #end of file
       if(last_syntax_result):
         printToken(last_syntax_result[0], f_out)
+        last_parsed_token = last_syntax_result[0]
       break
 
-    syntax_result = list(filter(lambda syntax: syntax is not None, Syntax.input(symbol)))
+    syntax_result = list(filter(lambda syntax: syntax is not None, Syntax.input(symbol, last_parsed_token)))
     if(not syntax_result):
       if(last_syntax_result): #token parse succeeded
         printToken(last_syntax_result[0], f_out)
+        last_parsed_token = last_syntax_result[0]
         Syntax.reset()
         f_in.seek(f_in.tell() - 1, os.SEEK_SET)
     last_syntax_result = syntax_result
