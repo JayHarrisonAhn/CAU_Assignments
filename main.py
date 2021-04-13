@@ -152,17 +152,17 @@ class Syntax:
       [None, None, None, None, 7],
       [None, None, None, None, None],
     ], [7]),
-    DFA_Graph('ARITHMATIC OP', [
+    DFA_Graph('OP_ARITHMATIC', [
       ["+-*/"],
       [2],
       [None]
     ], [2]),
-    DFA_Graph('ASSIGNMENT OP', [ #Assignment와 comparison 분리 필요
+    DFA_Graph('OP_ASSIGNMENT', [ #Assignment와 comparison 분리 필요
       ["="],
       [2],
       [None]
     ], [2]),
-    DFA_Graph('COMPARISON OP', [ #Comparison symbol 분리 필요
+    DFA_Graph('OP_COMPARISON', [ #Comparison symbol 분리 필요
       ["=", "<>", ">"],
       [2],
       [None]
