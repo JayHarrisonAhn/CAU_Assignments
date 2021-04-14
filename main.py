@@ -174,11 +174,12 @@ class Syntax:
       [None, None, None, None],
     ], [2, 3, 6, 7], []),
     DFA_Graph('SIGNED INTEGER', [
-      ["-", "0123456789"],
-      [2, 3],
-      [None, 3],
-      [None, 3],
-    ], [3], ['ID', 'SIGNED INTEGER']),
+      ["-", "123456789", "0123456789"],
+      [2, 3, None],
+      [None, 3, None],
+      [None, 3, 4],
+      [None, None, 4],
+    ], [3, 4], ['ID', 'SIGNED INTEGER']),
     DFA_Graph('TERMINATE', [
       [";"],
       [2],
