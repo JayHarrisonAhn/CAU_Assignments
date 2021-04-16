@@ -42,6 +42,8 @@ const char map_draw_default[7][7] = {
 };
 
 int initialized = 0;
+int threads_counted = 0;
+int num_of_threads = 0;
 
 void map_draw(void)
 {
@@ -51,6 +53,11 @@ void map_draw(void)
 	if(!initialized) {
 		/*Things to Initialize*/
 		initialized = 1;
+	}
+
+	/* Count number of threads before sync */
+	if((threads_counted == 0)&&(num_of_threads != 0)) {
+		threads_counted = 1;
 	}
 
 	clear();
@@ -67,6 +74,10 @@ void map_draw(void)
 
 void map_draw_vehicle(char id, int row, int col)
 {
+	if(!threads_counted) {
+		num_of_threads += 1;
+	}
+
 	if (row >= 0 && col >= 0) {
 		gotoxy(row + 1, col * 2 + 1);
 		printf("%c ", id);
