@@ -295,19 +295,19 @@ def main(input):
 
 
   # Auto Test Code Below (Remove for submit file)
-  try:
-    with open(input.replace('.java','')+".out.txt", 'rt') as f_autotest_out:
-      with open(input+"_output.txt", 'rt') as f_result:
-        while True:
-          autotest_out = f_autotest_out.readline()
-          autotest_in = f_result.readline()
-          if((not autotest_in) | (not autotest_out)): break
-          if(autotest_in != autotest_out):
-            print("[Autotest] Fail")
-            return
-        print("[Autotest] Success")
-  except:
-    return
+  # try:
+  #   with open(input.replace('.java','')+".out.txt", 'rt') as f_autotest_out:
+  #     with open(input+"_output.txt", 'rt') as f_result:
+  #       while True:
+  #         autotest_out = f_autotest_out.readline()
+  #         autotest_in = f_result.readline()
+  #         if((not autotest_in) | (not autotest_out)): break
+  #         if(autotest_in != autotest_out):
+  #           print("[Autotest] Fail")
+  #           return
+  #       print("[Autotest] Success")
+  # except:
+  #   return
 
 
 if __name__ == "__main__":
