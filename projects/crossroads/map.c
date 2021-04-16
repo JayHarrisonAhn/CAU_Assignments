@@ -30,6 +30,8 @@
 #define clear() printf("\033[H\033[J")
 #define gotoxy(y,x) printf("\033[%d;%dH", (y), (x))
 
+#define DEBUG_MODE 0
+
 
 const char map_draw_default[7][7] = {
 	{'X', 'X', ' ', 'X', ' ', 'X', 'X'}, 
@@ -42,8 +44,8 @@ const char map_draw_default[7][7] = {
 };
 
 int initialized = 0;
-int drawn_vehicles = 0;
 int num_of_vehicles = 0;
+int drawn_vehicles = 0;
 
 void map_draw(void)
 {
@@ -52,40 +54,62 @@ void map_draw(void)
 	/* Initialize before any thread starts */
 	if(!initialized) {
 		/*Things to Initialize*/
+		is_map_drawing_lock = malloc(sizeof(struct lock));
+		lock_init(is_map_drawing_lock);
+
+		map_drawn = malloc(sizeof(struct condition));
+		cond_init(map_drawn);
+
+		map_draw_start = malloc(sizeof(struct condition));
+		cond_init(map_draw_start);
+
 		initialized = 1;
 	}
+	set_map_draw();
 
 	/* Count number of threads before sync */
 	if(num_of_vehicles < drawn_vehicles) {
 		num_of_vehicles = drawn_vehicles;
+		drawn_vehicles = 0;
 	}
 
-	clear();
+	if(!DEBUG_MODE) {
+		clear();
 
-	for (i=0; i<7; i++) {
-		for (j=0; j<7; j++) {
-			printf("%c ", map_draw_default[i][j]);
+		for (i=0; i<7; i++) {
+			for (j=0; j<7; j++) {
+				printf("%c ", map_draw_default[i][j]);
+			}
+			printf("\n");
 		}
-		printf("\n");
+		printf("unit step: %d\n", crossroads_step);
+		gotoxy(0, 0);
 	}
-	printf("unit step: %d\n", crossroads_step);
-	gotoxy(0, 0);
 }
 
 void map_draw_vehicle(char id, int row, int col)
 {
-	if(!num_of_vehicles) {
-		drawn_vehicles += 1;
-	}
+	drawn_vehicles += 1;
 
-	if (row >= 0 && col >= 0) {
-		gotoxy(row + 1, col * 2 + 1);
-		printf("%c ", id);
-		gotoxy(0, 0);
+	if(!DEBUG_MODE) {
+		if (row >= 0 && col >= 0) {
+			gotoxy(row + 1, col * 2 + 1);
+			printf("%c ", id);
+			gotoxy(0, 0);
+		}
+	}
+	if(num_of_vehicles > 0) {
+		if(num_of_vehicles == drawn_vehicles) {
+			/* If this is this step's last draw */
+			release_map_draw();
+			drawn_vehicles = 0;
+		}
 	}
 }
 
 void map_draw_reset(void)
 {
-	clear();
+	if(!DEBUG_MODE) {
+		clear();
+	}
 }

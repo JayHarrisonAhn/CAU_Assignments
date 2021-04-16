@@ -107,7 +107,10 @@ void vehicle_loop(void *_vi)
 	step = 0;
 
 	/* busy wait until initizlize */
-	while((!initialized)||(!num_of_vehicles)) { }
+	while((!initialized) || (!num_of_vehicles)) {
+		/* 아무것도 없이 busy wait하면 thread가 죽는 현상 때문에 timer 설정 */
+		timer_msleep(1);
+	}
 
 	while (1) {
 		/* vehicle main code */
@@ -121,10 +124,29 @@ void vehicle_loop(void *_vi)
 			break;
 		}
 
-		/* sleep for 1 sec */
-		timer_msleep(1000);
+		wait_until_map_draw();
 	}	
 
 	/* status transition must happen before sema_up */
 	vi->state = VEHICLE_STATUS_FINISHED;
+}
+
+int is_map_drawing = 1;
+void wait_until_map_draw() {
+	lock_acquire(is_map_drawing_lock);
+	cond_wait(map_draw_start, is_map_drawing_lock);
+	cond_wait(map_drawn, is_map_drawing_lock);
+	lock_release(is_map_drawing_lock);
+}
+void set_map_draw() {
+	lock_acquire(is_map_drawing_lock);
+	is_map_drawing = 1;
+	cond_broadcast(map_draw_start, is_map_drawing_lock);
+	lock_release(is_map_drawing_lock);
+}
+void release_map_draw() {
+	lock_acquire(is_map_drawing_lock);
+	is_map_drawing = 0;
+	cond_broadcast(map_drawn, is_map_drawing_lock);
+	lock_release(is_map_drawing_lock);
 }

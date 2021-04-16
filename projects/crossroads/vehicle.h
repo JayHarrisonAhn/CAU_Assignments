@@ -18,4 +18,11 @@ struct vehicle_info {
 
 void vehicle_loop(void *vi);
 
+struct lock *is_map_drawing_lock;
+struct condition *map_draw_start;
+struct condition *map_drawn;
+void wait_until_map_draw();
+void set_map_draw();
+void release_map_draw();
+
 #endif /* __PROJECTS_PROJECT1_VEHICLE_H__ */
