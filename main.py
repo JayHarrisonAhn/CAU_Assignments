@@ -26,8 +26,8 @@ class DFA_Graph:
   def input_symbol(self, symbol, last_parsed_token):
     if(last_parsed_token): #Terminate after deny_last_token
       if(last_parsed_token[0] in self.deny_last_token):
-        self.current_state = None
-
+        if(symbol == '-'):
+          self.current_state = None
     if(self.current_state is None): #Already Terminated
       return None
 
@@ -174,11 +174,14 @@ class Syntax:
       [None, None, None, None],
     ], [2, 3, 6, 7], []),
     DFA_Graph('SIGNED INTEGER', [
-      ["-", "0123456789"],
-      [2, 3],
-      [None, 3],
-      [None, 3],
-    ], [3], ['ID', 'SIGNED INTEGER']),
+      ["-", "123456789", "0"],
+      [2, 3, 4],
+      [None, 3, None],
+      [None, 5, 6],
+      [None, None, None],
+      [None, 5, 6],
+      [None, 5, 6],
+    ], [3, 4, 5, 6], ['ID', 'SIGNED INTEGER']),
     DFA_Graph('TERMINATE', [
       [";"],
       [2],
@@ -292,19 +295,19 @@ def main(input):
 
 
   # Auto Test Code Below (Remove for submit file)
-  try:
-    with open(input.replace('.java','')+".out.txt", 'rt') as f_autotest_out:
-      with open(input+"_output.txt", 'rt') as f_result:
-        while True:
-          autotest_out = f_autotest_out.readline()
-          autotest_in = f_result.readline()
-          if((not autotest_in) | (not autotest_out)): break
-          if(autotest_in != autotest_out):
-            print("[Autotest] Fail")
-            return
-        print("[Autotest] Success")
-  except:
-    return
+  # try:
+  #   with open(input.replace('.java','')+".out.txt", 'rt') as f_autotest_out:
+  #     with open(input+"_output.txt", 'rt') as f_result:
+  #       while True:
+  #         autotest_out = f_autotest_out.readline()
+  #         autotest_in = f_result.readline()
+  #         if((not autotest_in) | (not autotest_out)): break
+  #         if(autotest_in != autotest_out):
+  #           print("[Autotest] Fail")
+  #           return
+  #       print("[Autotest] Success")
+  # except:
+  #   return
 
 
 if __name__ == "__main__":
