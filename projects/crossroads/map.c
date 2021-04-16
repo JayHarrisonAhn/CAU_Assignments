@@ -42,8 +42,8 @@ const char map_draw_default[7][7] = {
 };
 
 int initialized = 0;
-int threads_counted = 0;
-int num_of_threads = 0;
+int drawn_vehicles = 0;
+int num_of_vehicles = 0;
 
 void map_draw(void)
 {
@@ -56,8 +56,8 @@ void map_draw(void)
 	}
 
 	/* Count number of threads before sync */
-	if((threads_counted == 0)&&(num_of_threads != 0)) {
-		threads_counted = 1;
+	if(num_of_vehicles < drawn_vehicles) {
+		num_of_vehicles = drawn_vehicles;
 	}
 
 	clear();
@@ -74,8 +74,8 @@ void map_draw(void)
 
 void map_draw_vehicle(char id, int row, int col)
 {
-	if(!threads_counted) {
-		num_of_threads += 1;
+	if(!num_of_vehicles) {
+		drawn_vehicles += 1;
 	}
 
 	if (row >= 0 && col >= 0) {

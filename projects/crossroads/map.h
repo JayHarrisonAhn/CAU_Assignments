@@ -7,7 +7,7 @@
 
 extern int crossroads_step;
 extern int initialized;
-extern int num_of_threads;
+extern int num_of_vehicles;
 
 void map_draw(void);
 void map_draw_vehicle(char id, int row, int col);

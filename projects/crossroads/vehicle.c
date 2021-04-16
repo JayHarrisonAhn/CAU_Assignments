@@ -107,7 +107,7 @@ void vehicle_loop(void *_vi)
 	step = 0;
 
 	/* busy wait until initizlize */
-	while((!initialized)||(!num_of_threads)) { }
+	while((!initialized)||(!num_of_vehicles)) { }
 
 	while (1) {
 		/* vehicle main code */
