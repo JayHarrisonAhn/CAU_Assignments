@@ -26,8 +26,8 @@ class DFA_Graph:
   def input_symbol(self, symbol, last_parsed_token):
     if(last_parsed_token): #Terminate after deny_last_token
       if(last_parsed_token[0] in self.deny_last_token):
-        self.current_state = None
-
+        if(symbol == '-'):
+          self.current_state = None
     if(self.current_state is None): #Already Terminated
       return None
 
