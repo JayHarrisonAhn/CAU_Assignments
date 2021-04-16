@@ -41,10 +41,17 @@ const char map_draw_default[7][7] = {
 	{'X', 'X', ' ', '-', ' ', 'X', 'X'}, 
 };
 
+int initialized = 0;
 
 void map_draw(void)
 {
 	int i, j;
+
+	/* Initialize before any thread starts */
+	if(!initialized) {
+		/*Things to Initialize*/
+		initialized = 1;
+	}
 
 	clear();
 

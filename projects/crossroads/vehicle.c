@@ -105,6 +105,10 @@ void vehicle_loop(void *_vi)
 	vi->state = VEHICLE_STATUS_READY;
 
 	step = 0;
+
+	/* busy wait until initizlize */
+	while(!initialized) { }
+
 	while (1) {
 		/* vehicle main code */
 		res = try_move(start, dest, step, vi);
