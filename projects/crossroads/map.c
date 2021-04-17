@@ -43,7 +43,6 @@ const char map_draw_default[7][7] = {
 	{'X', 'X', ' ', '-', ' ', 'X', 'X'}, 
 };
 
-int initialized = 0;
 int num_of_vehicles = 0;
 int drawn_vehicles = 0;
 
@@ -51,26 +50,17 @@ void map_draw(void)
 {
 	int i, j;
 
-	/* Initialize before any thread starts */
-	if(!initialized) {
-		/*Things to Initialize*/
-		is_map_drawing_lock = malloc(sizeof(struct lock));
-		lock_init(is_map_drawing_lock);
-
-		map_drawn = malloc(sizeof(struct condition));
-		cond_init(map_drawn);
-
-		map_draw_start = malloc(sizeof(struct condition));
-		cond_init(map_draw_start);
-
-		initialized = 1;
-	}
-	set_map_draw();
-
 	/* Count number of threads before sync */
-	if(num_of_vehicles < drawn_vehicles) {
-		num_of_vehicles = drawn_vehicles;
-		drawn_vehicles = 0;
+	if(num_of_vehicles == 0) {
+		if(num_of_vehicles < drawn_vehicles) {
+			// initialize
+
+			map_drawn = malloc(sizeof(struct condition));
+			cond_init(map_drawn);
+
+			num_of_vehicles = drawn_vehicles;
+			drawn_vehicles = 0;
+		}
 	}
 
 	if(!DEBUG_MODE) {
@@ -101,7 +91,7 @@ void map_draw_vehicle(char id, int row, int col)
 	if(num_of_vehicles > 0) {
 		if(num_of_vehicles == drawn_vehicles) {
 			/* If this is this step's last draw */
-			release_map_draw();
+			vehicles_list_drawn_signal();
 			drawn_vehicles = 0;
 		}
 	}

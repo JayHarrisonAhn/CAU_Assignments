@@ -5,6 +5,7 @@
 
 #define VEHICLE_STATUS_READY 	0
 #define VEHICLE_STATUS_RUNNING	1
+#define VEHICLE_STATUS_MOVED	3
 #define VEHICLE_STATUS_FINISHED	2
 
 struct vehicle_info {
@@ -13,16 +14,19 @@ struct vehicle_info {
 	char start;
 	char dest;
 	struct position position;
+	struct position position_next;
+	struct lock *lock;
 	struct lock **map_locks;
 };
+struct vehicle_info_link {
+	struct vehicle_info *vi;
+	struct vehicle_info_link *next;
+};
+struct vehicle_info_link *vehicles_list;
 
 void vehicle_loop(void *vi);
+void vehicles_list_drawn_signal();
 
-struct lock *is_map_drawing_lock;
-struct condition *map_draw_start;
 struct condition *map_drawn;
-void wait_until_map_draw();
-void set_map_draw();
-void release_map_draw();
 
 #endif /* __PROJECTS_PROJECT1_VEHICLE_H__ */

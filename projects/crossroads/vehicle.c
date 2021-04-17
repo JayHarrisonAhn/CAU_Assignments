@@ -65,6 +65,9 @@ static int try_move(int start, int dest, int step, struct vehicle_info *vi)
 	pos_next = vehicle_path[start][dest][step];
 	pos_cur = vi->position;
 
+	lock_acquire(vi->lock);
+	vi->position_next = pos_next;
+	// printf("%d, %d\n", vi->position_next.row, vi->position_next.col);
 	if (vi->state == VEHICLE_STATUS_RUNNING) {
 		/* check termination */
 		if (is_position_outside(pos_next)) {
@@ -72,12 +75,15 @@ static int try_move(int start, int dest, int step, struct vehicle_info *vi)
 			vi->position.row = vi->position.col = -1;
 			/* release previous */
 			lock_release(&vi->map_locks[pos_cur.row][pos_cur.col]);
+			lock_release(vi->lock);
 			return 0;
 		}
 	}
+	lock_release(vi->lock);
 
 	/* lock next position */
 	lock_acquire(&vi->map_locks[pos_next.row][pos_next.col]);
+	lock_acquire(vi->lock);
 	if (vi->state == VEHICLE_STATUS_READY) {
 		/* start this vehicle */
 		vi->state = VEHICLE_STATUS_RUNNING;
@@ -87,6 +93,8 @@ static int try_move(int start, int dest, int step, struct vehicle_info *vi)
 	}
 	/* update position */
 	vi->position = pos_next;
+	vi->state = VEHICLE_STATUS_MOVED;
+	lock_release(vi->lock);
 	
 	return 1;
 }
@@ -98,21 +106,32 @@ void vehicle_loop(void *_vi)
 
 	struct vehicle_info *vi = _vi;
 
+	vi->lock = malloc(sizeof(struct lock));
+	lock_init(vi->lock);
+
+	lock_acquire(vi->lock);
 	start = vi->start - 'A';
 	dest = vi->dest - 'A';
-
-	vi->position.row = vi->position.col = -1;
-	vi->state = VEHICLE_STATUS_READY;
-
 	step = 0;
+	vi->position.row = vi->position.col = -1;
+	vi->position_next = vehicle_path[start][dest][step];
+	vi->state = VEHICLE_STATUS_READY;
+	vehicles_list_append(vi);
+	lock_release(vi->lock);
 
 	/* busy wait until initizlize */
-	while((!initialized) || (!num_of_vehicles)) {
+	while((!num_of_vehicles)) {
 		/* 아무것도 없이 busy wait하면 thread가 죽는 현상 때문에 timer 설정 */
 		timer_msleep(1);
 	}
 
 	while (1) {
+		lock_acquire(vi->lock);
+		while (vi->state == VEHICLE_STATUS_MOVED) {
+			cond_wait(map_drawn, vi->lock);
+		}
+		lock_release(vi->lock);
+
 		/* vehicle main code */
 		res = try_move(start, dest, step, vi);
 		if (res == 1) {
@@ -123,30 +142,104 @@ void vehicle_loop(void *_vi)
 		if (res == 0) {
 			break;
 		}
+		// timer_msleep(1000);
 
-		wait_until_map_draw();
 	}	
 
 	/* status transition must happen before sema_up */
 	vi->state = VEHICLE_STATUS_FINISHED;
 }
 
-int is_map_drawing = 1;
-void wait_until_map_draw() {
-	lock_acquire(is_map_drawing_lock);
-	cond_wait(map_draw_start, is_map_drawing_lock);
-	cond_wait(map_drawn, is_map_drawing_lock);
-	lock_release(is_map_drawing_lock);
+/* signal all vehicles that map is drawn */
+void vehicles_list_drawn_signal() {
+	struct vehicle_info_link *last_link = vehicles_list;
+	while(last_link != NULL) {
+		struct vehicle_info *vi = last_link->vi;
+		lock_acquire(vi->lock);
+		if(vi->state == VEHICLE_STATUS_MOVED) {
+			vi->state = VEHICLE_STATUS_RUNNING;
+		}
+		cond_broadcast(map_drawn, vi->lock);
+		lock_release(vi->lock);
+		last_link = last_link->next;
+	}
 }
-void set_map_draw() {
-	lock_acquire(is_map_drawing_lock);
-	is_map_drawing = 1;
-	cond_broadcast(map_draw_start, is_map_drawing_lock);
-	lock_release(is_map_drawing_lock);
+
+/* returns the number of elements in vehicles_list */
+int vehicles_list_all_moved() {
+	if(!vehicles_list) {
+		return 1;
+	}
+	struct vehicle_info_link *last_link;
+	int position_check[7][7] = { 0, };
+	int result = 1;
+
+	last_link = vehicles_list;
+	while(last_link != NULL) {
+		struct vehicle_info *vi = last_link->vi;
+		lock_acquire(vi->lock);
+		if(vi->state == VEHICLE_STATUS_MOVED) {
+			position_check[vi->position.row][vi->position.col] = 1;
+		}
+		last_link = last_link->next;
+	}
+
+	last_link = vehicles_list;
+	while(last_link != NULL) {
+		struct vehicle_info *vi = last_link->vi;
+		if((vi->state == VEHICLE_STATUS_RUNNING) || (vi->state == VEHICLE_STATUS_READY)) {
+			if(position_check[vi->position_next.row][vi->position_next.col] == 0) {
+				result = 0;
+				break;
+			}
+		}
+		last_link = last_link->next;
+	}
+
+	last_link = vehicles_list;
+	while(last_link != NULL) {
+		struct vehicle_info *vi = last_link->vi;
+		lock_release(vi->lock);
+		last_link = last_link->next;
+	}
+
+	return result;
 }
-void release_map_draw() {
-	lock_acquire(is_map_drawing_lock);
-	is_map_drawing = 0;
-	cond_broadcast(map_drawn, is_map_drawing_lock);
-	lock_release(is_map_drawing_lock);
+
+/* returns the number of elements in vehicles_list */
+int vehicles_list_count() {
+	struct vehicle_info_link *last_link = vehicles_list;
+	int result = 0;
+	while(last_link != NULL) {
+		result += 1;
+		last_link = last_link->next;
+	}
+	return result;
+}
+
+/* returns last value's pointer of vehicles_list */
+struct vehicle_info_link *vehicles_list_last() {
+	if(!vehicles_list) {
+		return NULL;
+	}
+	struct vehicle_info_link *last_link = vehicles_list;
+	while(last_link->next != NULL) {
+		last_link = last_link->next;
+	}
+	return last_link;
+}
+
+/* append vi into vehicles_list */
+void vehicles_list_append(struct vehicle_info *vi) {
+	struct vehicle_info_link *vi_list;
+	vi_list = malloc(sizeof(struct vehicle_info_link));
+	
+	vi_list->vi = vi;
+	vi_list->next = NULL;
+
+	if(vehicles_list_last() == NULL) {
+		vehicles_list = vi_list;
+	} else {
+		vehicles_list_last()->next = vi_list;
+	}
 }
