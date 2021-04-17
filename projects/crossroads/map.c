@@ -116,9 +116,10 @@ void wait_until_all_movable_vehicles_move() {
 		if(vehicle_not_moved == NULL) {
 			break;
 		} else {
-			vehicles_list_lock_release_except(vehicle_not_moved);
+			printf("안움직:(%c,%d,%d)", vehicle_not_moved->id, vehicle_not_moved->position_next.row, vehicle_not_moved->position_next.col);
+			// vehicles_list_lock_release_except(vehicle_not_moved);
 			cond_wait(vehicle_not_moved->vehicle_move, vehicle_not_moved->lock);
-			vehicles_list_lock_acquire_except(vehicle_not_moved);
+			// vehicles_list_lock_acquire_except(vehicle_not_moved);
 		}
 	}
 	vehicles_list_lock_release();

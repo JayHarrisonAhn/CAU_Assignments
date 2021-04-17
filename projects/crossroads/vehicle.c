@@ -119,6 +119,7 @@ void vehicle_loop(void *_vi)
 	dest = vi->dest - 'A';
 	step = 0;
 	vi->position.row = vi->position.col = -1;
+	vi->position_next = vehicle_path[start][dest][step];
 	vi->state = VEHICLE_STATUS_READY;
 	vehicles_list_append(vi);
 	lock_release(vi->lock);
@@ -190,7 +191,9 @@ struct vehicle_info *vehicles_not_moved_yet() {
 	last_link = vehicles_list;
 	while(last_link != NULL) {
 		struct vehicle_info *vi = last_link->vi;
-		position_check[vi->position.row][vi->position.col] = 1;
+		if((vi->state == VEHICLE_STATUS_RUNNING) || (vi->state == VEHICLE_STATUS_MOVED)) {
+			position_check[vi->position.row][vi->position.col] = 1;
+		}
 		last_link = last_link->next;
 	}
 
