@@ -61,6 +61,9 @@ void map_draw(void)
 			num_of_vehicles = drawn_vehicles;
 			drawn_vehicles = 0;
 		}
+	} 
+	if(num_of_vehicles != 0) {
+		wait_until_all_movable_vehicles_move();
 	}
 
 	if(!DEBUG_MODE) {
@@ -91,7 +94,9 @@ void map_draw_vehicle(char id, int row, int col)
 	if(num_of_vehicles > 0) {
 		if(num_of_vehicles == drawn_vehicles) {
 			/* If this is this step's last draw */
+			vehicles_list_lock_acquire();
 			vehicles_list_drawn_signal();
+			vehicles_list_lock_release();
 			drawn_vehicles = 0;
 		}
 	}
@@ -102,4 +107,19 @@ void map_draw_reset(void)
 	if(!DEBUG_MODE) {
 		clear();
 	}
+}
+
+void wait_until_all_movable_vehicles_move() {
+	vehicles_list_lock_acquire();
+	while(true) {
+		struct vehicle_info *vehicle_not_moved = vehicles_not_moved_yet();
+		if(vehicle_not_moved == NULL) {
+			break;
+		} else {
+			vehicles_list_lock_release_except(vehicle_not_moved);
+			cond_wait(vehicle_not_moved->vehicle_move, vehicle_not_moved->lock);
+			vehicles_list_lock_acquire_except(vehicle_not_moved);
+		}
+	}
+	vehicles_list_lock_release();
 }

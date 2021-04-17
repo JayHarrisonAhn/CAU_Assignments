@@ -75,6 +75,7 @@ static int try_move(int start, int dest, int step, struct vehicle_info *vi)
 			vi->position.row = vi->position.col = -1;
 			/* release previous */
 			lock_release(&vi->map_locks[pos_cur.row][pos_cur.col]);
+			cond_broadcast(vi->vehicle_move, vi->lock);
 			lock_release(vi->lock);
 			return 0;
 		}
@@ -94,6 +95,7 @@ static int try_move(int start, int dest, int step, struct vehicle_info *vi)
 	/* update position */
 	vi->position = pos_next;
 	vi->state = VEHICLE_STATUS_MOVED;
+	cond_broadcast(vi->vehicle_move, vi->lock);
 	lock_release(vi->lock);
 	
 	return 1;
@@ -109,12 +111,14 @@ void vehicle_loop(void *_vi)
 	vi->lock = malloc(sizeof(struct lock));
 	lock_init(vi->lock);
 
+	vi->vehicle_move = malloc(sizeof(struct condition));
+	cond_init(vi->vehicle_move);
+
 	lock_acquire(vi->lock);
 	start = vi->start - 'A';
 	dest = vi->dest - 'A';
 	step = 0;
 	vi->position.row = vi->position.col = -1;
-	vi->position_next = vehicle_path[start][dest][step];
 	vi->state = VEHICLE_STATUS_READY;
 	vehicles_list_append(vi);
 	lock_release(vi->lock);
@@ -142,45 +146,51 @@ void vehicle_loop(void *_vi)
 		if (res == 0) {
 			break;
 		}
-		// timer_msleep(1000);
-
 	}	
 
 	/* status transition must happen before sema_up */
 	vi->state = VEHICLE_STATUS_FINISHED;
 }
 
-/* signal all vehicles that map is drawn */
-void vehicles_list_drawn_signal() {
+
+
+void vehicles_list_lock_acquire() {
+	vehicles_list_lock_acquire_except(NULL);
+}
+void vehicles_list_lock_acquire_except(struct vehicle_info *except) {
 	struct vehicle_info_link *last_link = vehicles_list;
 	while(last_link != NULL) {
 		struct vehicle_info *vi = last_link->vi;
-		lock_acquire(vi->lock);
-		if(vi->state == VEHICLE_STATUS_MOVED) {
-			vi->state = VEHICLE_STATUS_RUNNING;
+		if(vi != except) {
+			lock_acquire(vi->lock);
 		}
-		cond_broadcast(map_drawn, vi->lock);
-		lock_release(vi->lock);
+		last_link = last_link->next;
+	}
+}
+void vehicles_list_lock_release() {
+	vehicles_list_lock_release_except(NULL);
+}
+void vehicles_list_lock_release_except(struct vehicle_info *except) {
+	struct vehicle_info_link *last_link = vehicles_list;
+	while(last_link != NULL) {
+		struct vehicle_info *vi = last_link->vi;
+		if(vi != except) {
+			lock_release(vi->lock);
+		}
 		last_link = last_link->next;
 	}
 }
 
 /* returns the number of elements in vehicles_list */
-int vehicles_list_all_moved() {
-	if(!vehicles_list) {
-		return 1;
-	}
-	struct vehicle_info_link *last_link;
+struct vehicle_info *vehicles_not_moved_yet() {
 	int position_check[7][7] = { 0, };
-	int result = 1;
+
+	struct vehicle_info_link *last_link;
 
 	last_link = vehicles_list;
 	while(last_link != NULL) {
 		struct vehicle_info *vi = last_link->vi;
-		lock_acquire(vi->lock);
-		if(vi->state == VEHICLE_STATUS_MOVED) {
-			position_check[vi->position.row][vi->position.col] = 1;
-		}
+		position_check[vi->position.row][vi->position.col] = 1;
 		last_link = last_link->next;
 	}
 
@@ -188,23 +198,32 @@ int vehicles_list_all_moved() {
 	while(last_link != NULL) {
 		struct vehicle_info *vi = last_link->vi;
 		if((vi->state == VEHICLE_STATUS_RUNNING) || (vi->state == VEHICLE_STATUS_READY)) {
+			if((vi->position.row == vi->position_next.row)&&((vi->position.col == vi->position_next.col))) {
+				return vi;
+			}
 			if(position_check[vi->position_next.row][vi->position_next.col] == 0) {
-				result = 0;
-				break;
+				return vi;
 			}
 		}
 		last_link = last_link->next;
 	}
+	return NULL;
+}
 
-	last_link = vehicles_list;
+/* signal all vehicles that map is drawn */
+void vehicles_list_drawn_signal() {
+	struct vehicle_info_link *last_link = vehicles_list;
 	while(last_link != NULL) {
 		struct vehicle_info *vi = last_link->vi;
-		lock_release(vi->lock);
+		if(vi->state == VEHICLE_STATUS_MOVED) {
+			vi->state = VEHICLE_STATUS_RUNNING;
+		}
+		cond_broadcast(map_drawn, vi->lock);
 		last_link = last_link->next;
 	}
-
-	return result;
 }
+
+
 
 /* returns the number of elements in vehicles_list */
 int vehicles_list_count() {
