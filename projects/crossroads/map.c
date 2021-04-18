@@ -64,9 +64,6 @@ void map_draw(void)
 			num_of_vehicles = drawn_vehicles;
 			drawn_vehicles = 0;
 		}
-	} 
-	if(num_of_vehicles != 0) {
-		// wait_until_all_movable_vehicles_move();
 	}
 
 	if(!DEBUG_MODE) {
@@ -114,33 +111,18 @@ void map_draw_reset(void)
 	}
 }
 
-// void wait_until_all_movable_vehicles_move() {
-// 	vehicles_list_lock_acquire();
-// 	while(true) {
-// 		struct vehicle_info *vehicle_not_moved = vehicles_not_moved_yet();
-// 		if(vehicle_not_moved == NULL) {
-// 			break;
-// 		} else {
-// 			printf("안움직:(%c,%d,%d)", vehicle_not_moved->id, vehicle_not_moved->position_next.row, vehicle_not_moved->position_next.col);
-// 			// vehicles_list_lock_release_except(vehicle_not_moved);
-// 			cond_wait(vehicle_not_moved->vehicle_move, vehicle_not_moved->lock);
-// 			// vehicles_list_lock_acquire_except(vehicle_not_moved);
-// 		}
-// 	}
-// 	vehicles_list_lock_release();
-// }
-
-/* signal all vehicles that map is drawn */
+/*	move vehicles after crossroad prior than vehicles that are before crossroad
+		and wait until they're all moved
+		(all vehicles in crossroad should move)	*/
 void move_vehicles_in_crossroad_and_wait() {
-	// printf("교차로내이동시작 ");
 	vehicles_list_make_not_movable();
 	struct vehicle_info_link *last_link = vehicles_list;
 	while(last_link != NULL) {
 		struct vehicle_info *vi = last_link->vi;
 		lock_acquire(vi->lock);
-		if(vehicle_in_crossroad(vi)) {
+		if(vehicle_after_crossroad(vi)) {
+			/*	make vehicles movable that are after crossroad	*/
 			vi->state = VEHICLE_STATUS_RUNNING;
-			// printf("(%c)", vi->id);
 			cond_broadcast(map_drawn, vi->lock);
 			vi->movable = 1;
 			cond_broadcast(vi->became_movable, vi->lock);
@@ -152,31 +134,25 @@ void move_vehicles_in_crossroad_and_wait() {
 	while(last_link != NULL) {
 		struct vehicle_info *vi = last_link->vi;
 		lock_acquire(vi->lock);
-		if(vehicle_in_crossroad(vi)) {
+		if(vehicle_after_crossroad(vi)) {
 			if(vi->state == VEHICLE_STATUS_RUNNING) {
-				// printf("[%c%d%d]", vi->id, vi->position.row, vi->position.col);
+				/* wait until all vehicles after crossroad move */
 				cond_wait(vi->vehicle_move, vi->lock);
-				// printf("[%c%d%d]", vi->id, vi->position.row, vi->position.col);
 			}
-			// printf("(%c끝)", vi->id);
 		}
 		lock_release(vi->lock);
 		last_link = last_link->next;
 	}
-	// printf("교차로내이동완료 ");
 }
 
-/* signal all vehicles that map is drawn */
+/*	move vehicles before crossroad
+		and wait until all vehicles move that can move 	*/
 void move_vehicles_not_in_crossroad_and_wait() {
-	// printf("교차로외이동시작 ");
-	int position_check[7][7] = { 0, };
-
-	// printf("1");
 	struct vehicle_info_link *last_link = vehicles_list;
 	while(last_link != NULL) {
 		struct vehicle_info *vi = last_link->vi;
-		if(!vehicle_in_crossroad(vi)) {
-			
+		if(!vehicle_after_crossroad(vi)) {
+			/*	make vehicles movable that are before crossroad	*/
 			lock_acquire(vi->lock);
 			if(vi->state == VEHICLE_STATUS_MOVED) {
 				vi->state = VEHICLE_STATUS_RUNNING;
@@ -191,45 +167,38 @@ void move_vehicles_not_in_crossroad_and_wait() {
 		last_link = last_link->next;
 	}
 	last_link = vehicles_list;
-	// printf("2");
 
-
-	
 	vehicles_list_lock_acquire();
-	// printf("3");
 	while(true) {
+		/* find vehicle that doesn't move even though it can */
 		struct vehicle_info *not_moved_vehicle = vehicles_not_moved_yet();
 		if(not_moved_vehicle == NULL) {
+			/*	if all vehicles move, it's done	*/
 			break;
 		} else {
-			// printf("(여기%c%d%d)", not_moved_vehicle->id, not_moved_vehicle->position.row, not_moved_vehicle->position.col);
+			/*	wait until that vehicle move	*/
 			cond_wait(not_moved_vehicle->vehicle_move, not_moved_vehicle->lock);
-			// printf("a");
 		}
-		// printf("abc");
 	}
-	// printf("4");
 	vehicles_list_lock_release();
-	// printf("교차로외이동완료 ");
 }
 
-/* returns the number of elements in vehicles_list */
+/*	find a vehicle that doesn't move even though it can	
+		and returns its pointer	*/
 struct vehicle_info *vehicles_not_moved_yet() {
 	int position_check[7][7] = { 0, };
 
 	struct vehicle_info_link *last_link;
-
 	last_link = vehicles_list;
 	while(last_link != NULL) {
 		struct vehicle_info *vi = last_link->vi;
 		if((vi->state == VEHICLE_STATUS_READY)||(vi->state == VEHICLE_STATUS_RUNNING)) {
-
 			if((vi->position.row == vi->position_next.row)&&(vi->position.col == vi->position_next.col)) {
-				// printf("(1여기%c%d%d)", vi->id, vi->position_next.row, vi->position_next.col);
+				/*	if vehicle didn't updated position_next, wait	*/
 				cond_wait(vi->vehicle_position_next_update, vi->lock);
-				// printf("탈출");
 			}
 		}
+		/*	mark all vehicles into position_check	*/
 		if((vi->state == VEHICLE_STATUS_RUNNING)||(vi->state == VEHICLE_STATUS_MOVED)) {
 			position_check[vi->position.row][vi->position.col] = 1;
 		}
@@ -238,15 +207,17 @@ struct vehicle_info *vehicles_not_moved_yet() {
 	last_link = vehicles_list;
 	while(last_link != NULL) {
 		struct vehicle_info *vi = last_link->vi;
-		// printf("(%c %d)",vi->id, vehicle_before_crossroad(vi));
 		if(vehicle_before_crossroad(vi)) {
 			if(position_check[vi->position_next.row][vi->position_next.col] == 0) {
-				// printf("(리턴%c)", vi->id);
 				if(vehicle_at_crossroad_enterance(vi)) {
 					if((inner_crossroad_sema->value) > 1) {
+						/*	if vehicle's position_next is empty and
+								if it's at the entance and could enter into inner crossroad,
+								it could move but didn't */
 						return vi;
 					}
 				} else {
+					/* if vehicle's position_next is empty, it could move but didn't */
 					return vi;
 				}
 			}

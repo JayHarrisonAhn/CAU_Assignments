@@ -29,18 +29,20 @@ struct vehicle_info_link {
 };
 struct vehicle_info_link *vehicles_list;
 struct semaphore *inner_crossroad_sema;
+struct condition *map_drawn;
 
 void vehicle_loop(void *vi);
+
 void vehicles_list_lock_acquire();
 void vehicles_list_lock_acquire_except(struct vehicle_info *except);
 void vehicles_list_lock_release();
 void vehicles_list_lock_release_except(struct vehicle_info *except);
-int vehicle_in_crossroad(struct vehicle_info *vi);
-int vehicle_before_crossroad(struct vehicle_info *vi);
-void vehicles_list_make_not_movable();
-int vehicle_at_crossroad_enterance(struct vehicle_info *vi);
-struct vehicle_info *vehicles_not_moved_yet();
 
-struct condition *map_drawn;
+void vehicles_list_make_not_movable();
+
+int vehicle_after_crossroad(struct vehicle_info *vi);
+int vehicle_before_crossroad(struct vehicle_info *vi);
+int vehicle_at_crossroad_enterance(struct vehicle_info *vi);
+int vehicle_at_crossroad_exit(struct vehicle_info *vi);
 
 #endif /* __PROJECTS_PROJECT1_VEHICLE_H__ */

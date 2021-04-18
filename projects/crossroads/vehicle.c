@@ -68,7 +68,6 @@ static int try_move(int start, int dest, int step, struct vehicle_info *vi)
 	lock_acquire(vi->lock);
 	vi->position_next = pos_next;
 	cond_broadcast(vi->vehicle_position_next_update, vi->lock);
-	// printf("%d, %d\n", vi->position_next.row, vi->position_next.col);
 	if (vi->state == VEHICLE_STATUS_RUNNING) {
 		/* check termination */
 		if (is_position_outside(pos_next)) {
@@ -76,7 +75,7 @@ static int try_move(int start, int dest, int step, struct vehicle_info *vi)
 			vi->position.row = vi->position.col = -1;
 			/* release previous */
 			lock_release(&vi->map_locks[pos_cur.row][pos_cur.col]);
-			// printf("(아웃%c)", vi->id);
+			/* signal that this vehicle moved */
 			cond_broadcast(vi->vehicle_move, vi->lock);
 			vi->state = VEHICLE_STATUS_FINISHED;
 			lock_release(vi->lock);
@@ -84,12 +83,12 @@ static int try_move(int start, int dest, int step, struct vehicle_info *vi)
 		}
 	}
 
+	/*	although vehicle caught next position's lock,
+			release it until it is movable	*/
 	while(true) {
 		lock_release(vi->lock);
 		if(vehicle_at_crossroad_enterance(vi)) {
-			// printf("(%c%d)", vi->id, inner_crossroad_sema->value);
 			sema_down(inner_crossroad_sema);
-			// printf("(%c%d)", vi->id, inner_crossroad_sema->value);
 		}
 		lock_acquire(&vi->map_locks[pos_next.row][pos_next.col]);
 		lock_acquire(vi->lock);
@@ -108,16 +107,17 @@ static int try_move(int start, int dest, int step, struct vehicle_info *vi)
 		/* start this vehicle */
 		vi->state = VEHICLE_STATUS_RUNNING;
 	} else {
-		/* release current position */
+		/* if this vehicle is exiting crossroad, sema up */
 		if(vehicle_at_crossroad_exit(vi)) {
 			sema_up(inner_crossroad_sema);
 		}
+		/* release current position */
 		lock_release(&vi->map_locks[pos_cur.row][pos_cur.col]);
 	}
 	/* update position */
 	vi->position = pos_next;
 	vi->state = VEHICLE_STATUS_MOVED;
-	// printf("(릴리즈%c%d%d)", vi->id, vi->position.row, vi->position.col);
+	/* signal that this vehicle moved */
 	cond_broadcast(vi->vehicle_move, vi->lock);
 	lock_release(vi->lock);
 	
@@ -129,6 +129,7 @@ void vehicle_loop(void *_vi)
 	int res;
 	int start, dest, step;
 
+	/* vi 초기화 */
 	struct vehicle_info *vi = _vi;
 
 	vi->lock = malloc(sizeof(struct lock));
@@ -151,6 +152,7 @@ void vehicle_loop(void *_vi)
 	vi->position_next = vehicle_path[start][dest][step];
 	vi->state = VEHICLE_STATUS_READY;
 	vi->movable = 1;
+	/* append this vehicle to vehicles_list */
 	vehicles_list_append(vi);
 	lock_release(vi->lock);
 
@@ -161,11 +163,11 @@ void vehicle_loop(void *_vi)
 	}
 
 	while (1) {
+		/* Wait until map draw */
 		lock_acquire(vi->lock);
 		while (vi->state == VEHICLE_STATUS_MOVED) {
 			cond_wait(map_drawn, vi->lock);
 		}
-		// printf("(시작%c)", vi->id);
 		lock_release(vi->lock);
 
 		/* vehicle main code */
@@ -178,14 +180,11 @@ void vehicle_loop(void *_vi)
 		if (res == 0) {
 			break;
 		}
-	}	
-
-	/* status transition must happen before sema_up */
-	// vi->state = VEHICLE_STATUS_FINISHED;
+	}
 }
 
 
-
+/* lock acquire all vehicles */
 void vehicles_list_lock_acquire() {
 	vehicles_list_lock_acquire_except(NULL);
 }
@@ -194,13 +193,12 @@ void vehicles_list_lock_acquire_except(struct vehicle_info *except) {
 	while(last_link != NULL) {
 		struct vehicle_info *vi = last_link->vi;
 		if(vi != except) {
-			// printf("(락요청%c)", vi->id);
 			lock_acquire(vi->lock);
-			// printf("(락요청성공%c)", vi->id);
 		}
 		last_link = last_link->next;
 	}
 }
+/* lock release all vehicles */
 void vehicles_list_lock_release() {
 	vehicles_list_lock_release_except(NULL);
 }
@@ -215,10 +213,9 @@ void vehicles_list_lock_release_except(struct vehicle_info *except) {
 	}
 }
 
+/* make all vehicles not to move */
 void vehicles_list_make_not_movable() {
-	// printf("1");
 	vehicles_list_lock_acquire();
-	// printf("2");
 	struct vehicle_info_link *last_link = vehicles_list;
 	while(last_link != NULL) {
 		struct vehicle_info *vi = last_link->vi;
@@ -229,7 +226,8 @@ void vehicles_list_make_not_movable() {
 }
 
 
-int vehicle_in_crossroad(struct vehicle_info *vi) {
+/* check if vehicle is after crossroad */
+int vehicle_after_crossroad(struct vehicle_info *vi) {
 	if((vi->position.row == 2)&&(vi->position.col == 2)) { return 1; }
 	else if((vi->position.row == 2)&&(vi->position.col == 3)) { return 1; }
 	else if((vi->position.row == 2)&&(vi->position.col == 4)) { return 1; }
@@ -253,6 +251,7 @@ int vehicle_in_crossroad(struct vehicle_info *vi) {
 
 	else { return 0; }
 }
+/* check if vehicle is before crossroad */
 int vehicle_before_crossroad(struct vehicle_info *vi) {
 	if((vi->position.row == 4)&&(vi->position.col == 0)) { return 1; }
 	else if((vi->position.row == 4)&&(vi->position.col == 1)) { return 1; }
@@ -268,6 +267,7 @@ int vehicle_before_crossroad(struct vehicle_info *vi) {
 
 	else { return 0; }
 }
+/* check if vehicle is at entrance of crossroad */
 int vehicle_at_crossroad_enterance(struct vehicle_info *vi) {
 	if((vi->position.row == 4)&&(vi->position.col == 1)) { return 1; }
 	else if((vi->position.row == 5)&&(vi->position.col == 4)) { return 1; }
@@ -276,6 +276,7 @@ int vehicle_at_crossroad_enterance(struct vehicle_info *vi) {
 
 	else { return 0; }
 }
+/* check if vehicle is at exit of crossroad */
 int vehicle_at_crossroad_exit(struct vehicle_info *vi) {
 	if((vi->position.row == 2)&&(vi->position.col == 1)) { return 1; }
 	else if((vi->position.row == 5)&&(vi->position.col == 2)) { return 1; }
@@ -286,28 +287,8 @@ int vehicle_at_crossroad_exit(struct vehicle_info *vi) {
 }
 
 
-/* returns the number of elements in vehicles_list */
-int vehicles_list_count() {
-	struct vehicle_info_link *last_link = vehicles_list;
-	int result = 0;
-	while(last_link != NULL) {
-		result += 1;
-		last_link = last_link->next;
-	}
-	return result;
-}
 
-/* returns last value's pointer of vehicles_list */
-struct vehicle_info_link *vehicles_list_last() {
-	if(!vehicles_list) {
-		return NULL;
-	}
-	struct vehicle_info_link *last_link = vehicles_list;
-	while(last_link->next != NULL) {
-		last_link = last_link->next;
-	}
-	return last_link;
-}
+
 
 /* append vi into vehicles_list */
 void vehicles_list_append(struct vehicle_info *vi) {
@@ -322,4 +303,15 @@ void vehicles_list_append(struct vehicle_info *vi) {
 	} else {
 		vehicles_list_last()->next = vi_list;
 	}
+}
+/* returns last value's pointer of vehicles_list */
+struct vehicle_info_link *vehicles_list_last() {
+	if(!vehicles_list) {
+		return NULL;
+	}
+	struct vehicle_info_link *last_link = vehicles_list;
+	while(last_link->next != NULL) {
+		last_link = last_link->next;
+	}
+	return last_link;
 }
