@@ -67,6 +67,7 @@ static int try_move(int start, int dest, int step, struct vehicle_info *vi)
 
 	lock_acquire(vi->lock);
 	vi->position_next = pos_next;
+	cond_broadcast(vi->vehicle_position_next_update, vi->lock);
 	// printf("%d, %d\n", vi->position_next.row, vi->position_next.col);
 	if (vi->state == VEHICLE_STATUS_RUNNING) {
 		/* check termination */
@@ -75,16 +76,26 @@ static int try_move(int start, int dest, int step, struct vehicle_info *vi)
 			vi->position.row = vi->position.col = -1;
 			/* release previous */
 			lock_release(&vi->map_locks[pos_cur.row][pos_cur.col]);
+			// printf("(아웃%c)", vi->id);
 			cond_broadcast(vi->vehicle_move, vi->lock);
+			vi->state = VEHICLE_STATUS_FINISHED;
 			lock_release(vi->lock);
 			return 0;
 		}
 	}
-	lock_release(vi->lock);
 
-	/* lock next position */
-	lock_acquire(&vi->map_locks[pos_next.row][pos_next.col]);
-	lock_acquire(vi->lock);
+	while(true) {
+		lock_release(vi->lock);
+		lock_acquire(&vi->map_locks[pos_next.row][pos_next.col]);
+		lock_acquire(vi->lock);
+		if(vi->movable) {
+			break;
+		} else {
+			lock_release(&vi->map_locks[pos_next.row][pos_next.col]);
+			cond_wait(vi->became_movable, vi->lock);
+		}
+	}
+
 	if (vi->state == VEHICLE_STATUS_READY) {
 		/* start this vehicle */
 		vi->state = VEHICLE_STATUS_RUNNING;
@@ -95,6 +106,7 @@ static int try_move(int start, int dest, int step, struct vehicle_info *vi)
 	/* update position */
 	vi->position = pos_next;
 	vi->state = VEHICLE_STATUS_MOVED;
+	// printf("(릴리즈%c%d%d)", vi->id, vi->position.row, vi->position.col);
 	cond_broadcast(vi->vehicle_move, vi->lock);
 	lock_release(vi->lock);
 	
@@ -114,6 +126,12 @@ void vehicle_loop(void *_vi)
 	vi->vehicle_move = malloc(sizeof(struct condition));
 	cond_init(vi->vehicle_move);
 
+	vi->vehicle_position_next_update = malloc(sizeof(struct condition));
+	cond_init(vi->vehicle_position_next_update);
+
+	vi->became_movable = malloc(sizeof(struct condition));
+	cond_init(vi->became_movable);
+
 	lock_acquire(vi->lock);
 	start = vi->start - 'A';
 	dest = vi->dest - 'A';
@@ -121,6 +139,7 @@ void vehicle_loop(void *_vi)
 	vi->position.row = vi->position.col = -1;
 	vi->position_next = vehicle_path[start][dest][step];
 	vi->state = VEHICLE_STATUS_READY;
+	vi->movable = 1;
 	vehicles_list_append(vi);
 	lock_release(vi->lock);
 
@@ -135,6 +154,7 @@ void vehicle_loop(void *_vi)
 		while (vi->state == VEHICLE_STATUS_MOVED) {
 			cond_wait(map_drawn, vi->lock);
 		}
+		// printf("(시작%c)", vi->id);
 		lock_release(vi->lock);
 
 		/* vehicle main code */
@@ -150,7 +170,7 @@ void vehicle_loop(void *_vi)
 	}	
 
 	/* status transition must happen before sema_up */
-	vi->state = VEHICLE_STATUS_FINISHED;
+	// vi->state = VEHICLE_STATUS_FINISHED;
 }
 
 
@@ -163,7 +183,9 @@ void vehicles_list_lock_acquire_except(struct vehicle_info *except) {
 	while(last_link != NULL) {
 		struct vehicle_info *vi = last_link->vi;
 		if(vi != except) {
+			// printf("(락요청%c)", vi->id);
 			lock_acquire(vi->lock);
+			// printf("(락요청성공%c)", vi->id);
 		}
 		last_link = last_link->next;
 	}
@@ -182,48 +204,58 @@ void vehicles_list_lock_release_except(struct vehicle_info *except) {
 	}
 }
 
-/* returns the number of elements in vehicles_list */
-struct vehicle_info *vehicles_not_moved_yet() {
-	int position_check[7][7] = { 0, };
-
-	struct vehicle_info_link *last_link;
-
-	last_link = vehicles_list;
-	while(last_link != NULL) {
-		struct vehicle_info *vi = last_link->vi;
-		if((vi->state == VEHICLE_STATUS_RUNNING) || (vi->state == VEHICLE_STATUS_MOVED)) {
-			position_check[vi->position.row][vi->position.col] = 1;
-		}
-		last_link = last_link->next;
-	}
-
-	last_link = vehicles_list;
-	while(last_link != NULL) {
-		struct vehicle_info *vi = last_link->vi;
-		if((vi->state == VEHICLE_STATUS_RUNNING) || (vi->state == VEHICLE_STATUS_READY)) {
-			if((vi->position.row == vi->position_next.row)&&((vi->position.col == vi->position_next.col))) {
-				return vi;
-			}
-			if(position_check[vi->position_next.row][vi->position_next.col] == 0) {
-				return vi;
-			}
-		}
-		last_link = last_link->next;
-	}
-	return NULL;
-}
-
-/* signal all vehicles that map is drawn */
-void vehicles_list_drawn_signal() {
+void vehicles_list_make_not_movable() {
+	// printf("1");
+	vehicles_list_lock_acquire();
+	// printf("2");
 	struct vehicle_info_link *last_link = vehicles_list;
 	while(last_link != NULL) {
 		struct vehicle_info *vi = last_link->vi;
-		if(vi->state == VEHICLE_STATUS_MOVED) {
-			vi->state = VEHICLE_STATUS_RUNNING;
-		}
-		cond_broadcast(map_drawn, vi->lock);
+		vi->movable = 0;
 		last_link = last_link->next;
 	}
+	vehicles_list_lock_release();
+}
+
+
+int vehicle_in_crossroad(struct vehicle_info *vi) {
+	if((vi->position.row == 2)&&(vi->position.col == 2)) { return 1; }
+	else if((vi->position.row == 2)&&(vi->position.col == 3)) { return 1; }
+	else if((vi->position.row == 2)&&(vi->position.col == 4)) { return 1; }
+	else if((vi->position.row == 3)&&(vi->position.col == 2)) { return 1; }
+	else if((vi->position.row == 3)&&(vi->position.col == 4)) { return 1; }
+	else if((vi->position.row == 4)&&(vi->position.col == 2)) { return 1; }
+	else if((vi->position.row == 4)&&(vi->position.col == 3)) { return 1; }
+	else if((vi->position.row == 4)&&(vi->position.col == 4)) { return 1; }
+
+	else if((vi->position.row == 2)&&(vi->position.col == 0)) { return 1; }
+	else if((vi->position.row == 2)&&(vi->position.col == 1)) { return 1; }
+
+	else if((vi->position.row == 5)&&(vi->position.col == 2)) { return 1; }
+	else if((vi->position.row == 6)&&(vi->position.col == 2)) { return 1; }
+
+	else if((vi->position.row == 4)&&(vi->position.col == 5)) { return 1; }
+	else if((vi->position.row == 4)&&(vi->position.col == 6)) { return 1; }
+
+	else if((vi->position.row == 0)&&(vi->position.col == 4)) { return 1; }
+	else if((vi->position.row == 1)&&(vi->position.col == 4)) { return 1; }
+
+	else { return 0; }
+}
+int vehicle_before_crossroad(struct vehicle_info *vi) {
+	if((vi->position.row == 4)&&(vi->position.col == 0)) { return 1; }
+	else if((vi->position.row == 4)&&(vi->position.col == 1)) { return 1; }
+
+	else if((vi->position.row == 5)&&(vi->position.col == 4)) { return 1; }
+	else if((vi->position.row == 6)&&(vi->position.col == 4)) { return 1; }
+
+	else if((vi->position.row == 2)&&(vi->position.col == 5)) { return 1; }
+	else if((vi->position.row == 2)&&(vi->position.col == 6)) { return 1; }
+
+	else if((vi->position.row == 0)&&(vi->position.col == 2)) { return 1; }
+	else if((vi->position.row == 1)&&(vi->position.col == 2)) { return 1; }
+
+	else { return 0; }
 }
 
 
