@@ -45,4 +45,7 @@ int vehicle_before_crossroad(struct vehicle_info *vi);
 int vehicle_at_crossroad_enterance(struct vehicle_info *vi);
 int vehicle_at_crossroad_exit(struct vehicle_info *vi);
 
+void vehicles_list_append(struct vehicle_info *vi);
+struct vehicle_info_link *vehicles_list_last();
+
 #endif /* __PROJECTS_PROJECT1_VEHICLE_H__ */
