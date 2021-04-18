@@ -58,6 +58,9 @@ void map_draw(void)
 			map_drawn = malloc(sizeof(struct condition));
 			cond_init(map_drawn);
 
+			inner_crossroad_sema = malloc(sizeof(struct semaphore));
+			sema_init(inner_crossroad_sema, 7);
+
 			num_of_vehicles = drawn_vehicles;
 			drawn_vehicles = 0;
 		}
@@ -239,7 +242,13 @@ struct vehicle_info *vehicles_not_moved_yet() {
 		if(vehicle_before_crossroad(vi)) {
 			if(position_check[vi->position_next.row][vi->position_next.col] == 0) {
 				// printf("(리턴%c)", vi->id);
-				return vi;
+				if(vehicle_at_crossroad_enterance(vi)) {
+					if((inner_crossroad_sema->value) > 1) {
+						return vi;
+					}
+				} else {
+					return vi;
+				}
 			}
 		}
 		last_link = last_link->next;

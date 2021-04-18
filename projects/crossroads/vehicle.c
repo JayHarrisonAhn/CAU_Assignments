@@ -86,12 +86,20 @@ static int try_move(int start, int dest, int step, struct vehicle_info *vi)
 
 	while(true) {
 		lock_release(vi->lock);
+		if(vehicle_at_crossroad_enterance(vi)) {
+			// printf("(%c%d)", vi->id, inner_crossroad_sema->value);
+			sema_down(inner_crossroad_sema);
+			// printf("(%c%d)", vi->id, inner_crossroad_sema->value);
+		}
 		lock_acquire(&vi->map_locks[pos_next.row][pos_next.col]);
 		lock_acquire(vi->lock);
 		if(vi->movable) {
 			break;
 		} else {
 			lock_release(&vi->map_locks[pos_next.row][pos_next.col]);
+			if(vehicle_at_crossroad_enterance(vi)) {
+				sema_up(inner_crossroad_sema);
+			}
 			cond_wait(vi->became_movable, vi->lock);
 		}
 	}
@@ -101,6 +109,9 @@ static int try_move(int start, int dest, int step, struct vehicle_info *vi)
 		vi->state = VEHICLE_STATUS_RUNNING;
 	} else {
 		/* release current position */
+		if(vehicle_at_crossroad_exit(vi)) {
+			sema_up(inner_crossroad_sema);
+		}
 		lock_release(&vi->map_locks[pos_cur.row][pos_cur.col]);
 	}
 	/* update position */
@@ -257,7 +268,22 @@ int vehicle_before_crossroad(struct vehicle_info *vi) {
 
 	else { return 0; }
 }
+int vehicle_at_crossroad_enterance(struct vehicle_info *vi) {
+	if((vi->position.row == 4)&&(vi->position.col == 1)) { return 1; }
+	else if((vi->position.row == 5)&&(vi->position.col == 4)) { return 1; }
+	else if((vi->position.row == 2)&&(vi->position.col == 5)) { return 1; }
+	else if((vi->position.row == 1)&&(vi->position.col == 2)) { return 1; }
 
+	else { return 0; }
+}
+int vehicle_at_crossroad_exit(struct vehicle_info *vi) {
+	if((vi->position.row == 2)&&(vi->position.col == 1)) { return 1; }
+	else if((vi->position.row == 5)&&(vi->position.col == 2)) { return 1; }
+	else if((vi->position.row == 4)&&(vi->position.col == 5)) { return 1; }
+	else if((vi->position.row == 1)&&(vi->position.col == 4)) { return 1; }
+
+	else { return 0; }
+}
 
 
 /* returns the number of elements in vehicles_list */
