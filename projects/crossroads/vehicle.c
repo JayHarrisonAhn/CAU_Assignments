@@ -154,7 +154,6 @@ void vehicle_loop(void *_vi)
 	vi->position_next = vehicle_path[start][dest][step];
 	vi->state = VEHICLE_STATUS_READY;
 	vi->movable = 1;
-	/* append this vehicle to vehicles_list */
 	lock_release(vi->lock);
 
 	/* busy wait until initizlize */
@@ -162,6 +161,7 @@ void vehicle_loop(void *_vi)
 		/* 아무 것도 없이 busy wait하면 thread가 죽는 현상 때문에 timer 설정 */
 		timer_msleep(1);
 	}
+	/* append this vehicle to vehicles_list */
 	vehicles_list_append(vi);
 
 	while (1) {
