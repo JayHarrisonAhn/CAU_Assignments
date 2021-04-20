@@ -61,6 +61,9 @@ void map_draw(void)
 			inner_crossroad_sema = malloc(sizeof(struct semaphore));
 			sema_init(inner_crossroad_sema, 7);
 
+			vehicles_list_lock = malloc(sizeof(struct lock));
+			lock_init(vehicles_list_lock);
+
 			num_of_vehicles = drawn_vehicles;
 			drawn_vehicles = 0;
 		}
@@ -94,11 +97,9 @@ void map_draw_vehicle(char id, int row, int col)
 	if(num_of_vehicles > 0) {
 		if(num_of_vehicles == drawn_vehicles) {
 			/* If this is this step's last draw */
-			// printf("1");
-			move_vehicles_in_crossroad_and_wait();
-			// printf("2");
-			move_vehicles_not_in_crossroad_and_wait();
-			// printf("3");
+			vehicles_list_make_not_movable();
+			move_vehicles_after_crossroad_and_wait();
+			move_vehicles_before_crossroad_and_wait();
 			drawn_vehicles = 0;
 		}
 	}
@@ -114,8 +115,8 @@ void map_draw_reset(void)
 /*	move vehicles after crossroad prior than vehicles that are before crossroad
 		and wait until they're all moved
 		(all vehicles in crossroad should move)	*/
-void move_vehicles_in_crossroad_and_wait() {
-	vehicles_list_make_not_movable();
+void move_vehicles_after_crossroad_and_wait() {
+	
 	struct vehicle_info_link *last_link = vehicles_list;
 	while(last_link != NULL) {
 		struct vehicle_info *vi = last_link->vi;
@@ -147,7 +148,7 @@ void move_vehicles_in_crossroad_and_wait() {
 
 /*	move vehicles before crossroad
 		and wait until all vehicles move that can move 	*/
-void move_vehicles_not_in_crossroad_and_wait() {
+void move_vehicles_before_crossroad_and_wait() {
 	struct vehicle_info_link *last_link = vehicles_list;
 	while(last_link != NULL) {
 		struct vehicle_info *vi = last_link->vi;

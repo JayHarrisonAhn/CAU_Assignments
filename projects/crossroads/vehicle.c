@@ -87,6 +87,7 @@ static int try_move(int start, int dest, int step, struct vehicle_info *vi)
 			release it until it is movable	*/
 	while(true) {
 		lock_release(vi->lock);
+		/*	if this vehicle is to enter crossroad, wait for sema	*/
 		if(vehicle_at_crossroad_enterance(vi)) {
 			sema_down(inner_crossroad_sema);
 		}
@@ -96,6 +97,7 @@ static int try_move(int start, int dest, int step, struct vehicle_info *vi)
 			break;
 		} else {
 			lock_release(&vi->map_locks[pos_next.row][pos_next.col]);
+			/*	if this vehicle is not movable, sema up and wait again	*/
 			if(vehicle_at_crossroad_enterance(vi)) {
 				sema_up(inner_crossroad_sema);
 			}
@@ -153,14 +155,14 @@ void vehicle_loop(void *_vi)
 	vi->state = VEHICLE_STATUS_READY;
 	vi->movable = 1;
 	/* append this vehicle to vehicles_list */
-	vehicles_list_append(vi);
 	lock_release(vi->lock);
 
 	/* busy wait until initizlize */
 	while((!num_of_vehicles)) {
-		/* 아무것도 없이 busy wait하면 thread가 죽는 현상 때문에 timer 설정 */
+		/* 아무 것도 없이 busy wait하면 thread가 죽는 현상 때문에 timer 설정 */
 		timer_msleep(1);
 	}
+	vehicles_list_append(vi);
 
 	while (1) {
 		/* Wait until map draw */
@@ -213,7 +215,7 @@ void vehicles_list_lock_release_except(struct vehicle_info *except) {
 	}
 }
 
-/* make all vehicles not to move */
+/* make all vehicles not movable */
 void vehicles_list_make_not_movable() {
 	vehicles_list_lock_acquire();
 	struct vehicle_info_link *last_link = vehicles_list;
@@ -298,11 +300,13 @@ void vehicles_list_append(struct vehicle_info *vi) {
 	vi_list->vi = vi;
 	vi_list->next = NULL;
 
+	lock_acquire(vehicles_list_lock);
 	if(vehicles_list_last() == NULL) {
 		vehicles_list = vi_list;
 	} else {
 		vehicles_list_last()->next = vi_list;
 	}
+	lock_release(vehicles_list_lock);
 }
 /* returns last value's pointer of vehicles_list */
 struct vehicle_info_link *vehicles_list_last() {
