@@ -20,7 +20,7 @@ class ll:
       current_node = current_node.next
       result += 1
     return result
-      
+
   @classmethod
   def search_node(cls, index):
     current_index = 0
@@ -38,7 +38,7 @@ class ll:
       cls.top_node = ll(value)
     else:
       cls.last_node().next = ll(value)
-  
+
   @classmethod
   def insert(cls, at, value):
     if at > (cls.num_of_nodes()+1):
@@ -62,14 +62,14 @@ class ll:
     if index >= cls.num_of_nodes():
       raise NameError("Index Overflow")
     else:
-
       if index == 0:
         cls.top_node = cls.top_node.next
       elif index == cls.num_of_nodes()-1:
         cls.search_node(index-1).next = None
       else:
-        cls.search_node(index-1).next = cls.search_node(index)
+        cls.search_node(index-1).next = cls.search_node(index+1)
 
+  #1
   @classmethod
   def reverse(cls):
     if cls.num_of_nodes() <= 0:
@@ -84,6 +84,43 @@ class ll:
         cls.remove(cls.num_of_nodes()-1)
       cls.top_node = new_top_node
 
+
+  #2
+  @classmethod
+  def remove_duplicates(cls):
+    current_node = cls.top_node
+    current_node_index = 0
+    values = []
+    while current_node is not None:
+      if current_node.value in values:
+        ll.remove(current_node_index)
+        current_node_index -= 1
+      else:
+        values.append(current_node.value)
+
+      current_node = current_node.next
+      current_node_index += 1
+
+
   def __init__(self, value):
     self.value = value
     self.next = None
+
+ll.append(1)
+ll.append(1)
+ll.append(2)
+ll.append(3)
+ll.append(4)
+ll.append(4)
+ll.append(5)
+ll.append(6)
+ll.append(7)
+ll.append(7)
+ll.append(7)
+ll.append(7)
+ll.append(7)
+
+ll.traverse()
+ll.remove_duplicates()
+ll.traverse()
+
