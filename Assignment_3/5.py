@@ -16,11 +16,8 @@ class rbt_node:
         right.parent = self
 
     def swap(self, other_node):
-        # temp_color = other_node.color
         temp_value = other_node.value
-        # other_node.color = self.color
         other_node.value = self.value
-        # self.color = temp_color
         self.value = temp_value
 
     def right_rotate(self):
@@ -46,7 +43,6 @@ class rbt_node:
 
 
     def left_rotate(self):
-        # print("ddd", self.value, self.left, self.right)
         A = self
         B = self.right
         b = B.left
@@ -94,15 +90,12 @@ class rbt_node:
             return grandparent.left
 
     def insert(self, value):
-        # print(value)
         new_node = rbt_node(value)
         self.tree_insert(new_node)
 
         while new_node != self:
-            # uncle = new_node.uncle()
             if new_node.parent.color != 0:
                 break
-
 
             if new_node.uncle() is not None:
                 if new_node.uncle().color == 0:
@@ -125,25 +118,24 @@ class rbt_node:
 
         self.color = 1
 
+    def printNode(self):
+        left_print = None
+        right_print = None
+        if self.left is not None:
+            left_print = self.left.printNode()
+        if self.right is not None:
+            right_print = self.right.printNode()
 
-# root_node = rbt_node(100)
-# root_node.color = 1
-# root_node.insert(150)
-# root_node.insert(200)
-# root_node.insert(300)
-# root_node.insert(175)
-# root_node.insert(180)
-# root_node.insert(190)
-# root_node.insert(160)
+        return '['+str(left_print)+','+str(self.value)+'-'+str(self.color)+','+str(right_print)+']'
 
-root_node = rbt_node(8)
+
+root_node = rbt_node(41)
 root_node.color = 1
-root_node.insert(18)
-root_node.insert(5)
-root_node.insert(15)
-root_node.insert(17)
-root_node.insert(25)
-root_node.insert(40)
-root_node.insert(80)
+root_node.insert(38)
+root_node.insert(31)
+root_node.insert(12)
+root_node.insert(19)
+root_node.insert(8)
 
-print(root_node.left.uncle())
+print("Problem #5 (0 is red, 1 is black)")
+print(root_node.printNode())
