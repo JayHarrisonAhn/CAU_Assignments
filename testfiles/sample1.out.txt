@@ -1,7 +1,0 @@
-ID	intager
-INT	int
-ID	ager
-ID	INTintintint
-INT	int
-ID	i
-TERMINATE	;

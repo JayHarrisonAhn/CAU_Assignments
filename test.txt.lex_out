@@ -1,0 +1,15 @@
+vtype	int
+id	a
+semi	;
+vtype	int
+id	c
+lparen	(
+rparen	)
+lbrace	{
+vtype	int
+id	a
+semi	;
+return	return
+id	a
+semi	;
+rbrace	}

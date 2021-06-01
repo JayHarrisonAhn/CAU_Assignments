@@ -1,5 +1,6 @@
 import sys
 
+
 class Stack():
     def __init__(self):
         self.top = []
@@ -23,7 +24,7 @@ class Stack():
         if not self.isEmpty():
             return self.top.pop(-1)
         else:
-            print("stack underflow")
+            print("Syntax Analyzer : Error-stack underflow")
             exit()
 
     def isContain(self, item):
@@ -33,7 +34,7 @@ class Stack():
         if not self.isEmpty():
             return self.top[-1]
         else:
-            print("underflow")
+            print("Syntax Analyzer : Error-underflow")
             exit()
 
     def size(self):
@@ -49,36 +50,36 @@ class Grammer():
            ['VDECL', 3],
            ['VDECL', 3],
            ['ASSIGN', 3],
-           ['RHS',1],
            ['RHS', 1],
            ['RHS', 1],
            ['RHS', 1],
-           ['EXPR',3],
-           ['EXPR',1],
-           ['EXPR2',3],
-           ['EXPR2',1],
-           ['EXPR3',3],
-           ['EXPR3',1],
-           ['EXPR3',1],
-           ['FDECL',9],
+           ['RHS', 1],
+           ['EXPR', 3],
+           ['EXPR', 1],
+           ['EXPR2', 3],
+           ['EXPR2', 1],
+           ['EXPR3', 3],
+           ['EXPR3', 1],
+           ['EXPR3', 1],
+           ['FDECL', 9],
            ['ARG', 3],
-           ['ARG',0],
-           ['MOREARGS',4],
-           ['MOREARGS',0],
-           ['BLOCK',2],
-           ['BLOCK',0],
-           ['STMT',1],
+           ['ARG', 0],
+           ['MOREARGS', 4],
+           ['MOREARGS', 0],
+           ['BLOCK', 2],
+           ['BLOCK', 0],
+           ['STMT', 1],
            ['STMT', 2],
            ['STMT', 8],
            ['STMT', 7],
            ['COND', 3],
-           ['COND',1],
-           ['COND2',1],
-           ['ELSE',4],
-           ['ELSE',0],
-           ['RETURN',3],
-           ['CDECL',5],
-           ['ODECL',2],
+           ['COND', 1],
+           ['COND2', 1],
+           ['ELSE', 4],
+           ['ELSE', 0],
+           ['RETURN', 3],
+           ['CDECL', 5],
+           ['ODECL', 2],
            ['ODECL', 2],
            ['ODECL', 0],
            ]
@@ -3829,16 +3830,17 @@ class SLRtable:
         },
     ]
 
+
 def main(input):
     f_in = open(input, 'rt')
     line = f_in.readline()
     token = []
     lines = []
     while line != '':
-       li = line.split('\t', maxsplit=1)
-       token.append(li[0])
-       line = f_in.readline()
-       lines.append(line)
+        li = line.split('\t', maxsplit=1)
+        token.append(li[0])
+        line = f_in.readline()
+        lines.append(line)
 
     f_in.close()
     token.append('$')
@@ -3850,12 +3852,13 @@ def main(input):
     while True:
         key = SLRtable.table[state_stack.peek()][token[i]]
         if key == None:
-            print('Fail')
-            print(i, '\'s token', grammer_stack.peek(),'is error', grammer_stack.peek(), 'can\'t choice', token[i])
+            print("Syntax Analyzer : Failed")
+            print(
+                f"Syntax Analyzer : {i}'s token {grammer_stack.peek()} can't choice {token[i]}")
 
             break
         if key == 'acc':
-            print('Accept')
+            print(f"Syntax Analyzer : Accepted")
             break
         order = key[0]
         state = int(key[1:])
@@ -3870,9 +3873,9 @@ def main(input):
                 grammer_stack.pop()
             for item in grammer[:-1]:
                 grammer_stack.push(item)
-            state_stack.push(int(SLRtable.table[state_stack.peek()][grammer_stack.peek()]))
+            state_stack.push(
+                int(SLRtable.table[state_stack.peek()][grammer_stack.peek()]))
 
 
 if __name__ == "__main__":
     main(sys.argv[1])
-
