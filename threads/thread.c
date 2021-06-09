@@ -20,9 +20,7 @@
    of thread.h for details. */
 #define THREAD_MAGIC 0xcd6abf4b
 
-/* List of processes in THREAD_READY state, that is, processes
-   that are ready to run but not actually running. */
-static struct list ready_list;
+/* 각 Feedback Queue의 thread의 list들 */
 static struct list ready_list_fq0;
 static struct list ready_list_fq1;
 static struct list ready_list_fq2;
@@ -59,8 +57,7 @@ static long long kernel_ticks;  /* # of timer ticks in kernel threads. */
 static long long user_ticks;    /* # of timer ticks in user programs. */
 
 /* Scheduling. */
-#define TIME_SLICE 4            /* # of timer ticks to give each thread. */
-#define TIME_SLICE_FQ0 4
+#define TIME_SLICE_FQ0 4        /* 각 Feedback Queue별로 사용되는 Time Slice 길이 */
 #define TIME_SLICE_FQ1 5
 #define TIME_SLICE_FQ2 6
 #define TIME_SLICE_FQ3 7
@@ -102,7 +99,6 @@ thread_init (void)
   ASSERT (intr_get_level () == INTR_OFF);
 
   lock_init (&tid_lock);
-  list_init (&ready_list);
   list_init (&ready_list_fq0);
   list_init (&ready_list_fq1);
   list_init (&ready_list_fq2);
@@ -270,7 +266,7 @@ thread_unblock (struct thread *t)
 
   old_level = intr_disable ();
   ASSERT (t->status == THREAD_BLOCKED);
-  list_push_back (&ready_list, &t->elem);
+  thread_list_push_back(t);
   t->status = THREAD_READY;
   intr_set_level (old_level);
 }
@@ -399,7 +395,7 @@ thread_yield (void)
   printf("yield %s %d\n", cur->name, thread_ticks);
   old_level = intr_disable ();
   if (cur != idle_thread) 
-    list_push_back (&ready_list, &cur->elem);
+    thread_set_priority_lower(cur);
   cur->status = THREAD_READY;
   schedule ();
   intr_set_level (old_level);
@@ -420,6 +416,80 @@ thread_foreach (thread_action_func *func, void *aux)
       struct thread *t = list_entry (e, struct thread, allelem);
       func (t, aux);
     }
+}
+
+/* Thread를 현재 level의 Feedback Queue의 제일 마지막에 집어넣기 */
+void
+thread_list_push_back (struct thread *t) 
+{
+  switch (t->priority) {
+  case 0:
+    list_push_back(&ready_list_fq0, &(t->elem));
+    break;
+  case 1:
+    list_push_back(&ready_list_fq1, &(t->elem));
+    break;
+  case 2:
+    list_push_back(&ready_list_fq2, &(t->elem));
+    break;
+  case 3:
+    list_push_back(&ready_list_fq3, &(t->elem));
+    break;
+  }
+}
+
+/* Thread의 priority를 한 단계 올리고, 올린 Level의
+   Feedback Queue의 제일 마지막에 집어넣기 */
+void
+thread_set_priority_higher (struct thread *t) 
+{
+  switch (t->priority) {
+  case 0:
+    list_push_back(&ready_list_fq0, &(t->elem));
+    break;
+  case 1:
+    list_remove(&(t->elem));
+    list_push_back(&ready_list_fq0, &(t->elem));
+    t->priority = 0;
+    break;
+  case 2:
+    list_remove(&(t->elem));
+    list_push_back(&ready_list_fq1, &(t->elem));
+    t->priority = 1;
+    break;
+  case 3:
+    list_remove(&(t->elem));
+    list_push_back(&ready_list_fq2, &(t->elem));
+    t->priority = 2;
+    break;
+  }
+}
+
+/* Thread의 priority를 한 단계 내리고, 내린 Level의
+   Feedback Queue의 제일 마지막에 집어넣기 */
+void
+thread_set_priority_lower (struct thread *t) 
+{
+  switch (t->priority) {
+  case 0:
+    list_remove(&(t->elem));
+    list_push_back(&ready_list_fq1, &(t->elem));
+    t->priority = 1;
+    break;
+  case 1:
+    list_remove(&(t->elem));
+    list_push_back(&ready_list_fq2, &(t->elem));
+    t->priority = 2;
+    break;
+  case 2:
+    list_remove(&(t->elem));
+    list_push_back(&ready_list_fq3, &(t->elem));
+    t->priority = 3;
+    break;
+  case 3:
+    list_push_back(&ready_list_fq3, &(t->elem));
+    break;
+  }
 }
 
 /* Sets the current thread's priority to NEW_PRIORITY. */
@@ -578,6 +648,7 @@ alloc_frame (struct thread *t, size_t size)
    empty.  (If the running thread can continue running, then it
    will be in the run queue.)  If the run queue is empty, return
    idle_thread. */
+/* FQ0에서 FQ3까지 순차적으로 탐색하다가 queue가 비어있지 않으면 thread 실행 */
 static struct thread *
 next_thread_to_run (void) 
 {
@@ -592,9 +663,6 @@ next_thread_to_run (void)
   }
   else if (!list_empty (&ready_list_fq3)) {
     return list_entry (list_pop_front (&ready_list_fq3), struct thread, elem);
-  }
-  else if (!list_empty (&ready_list)) {
-    return list_entry (list_pop_front (&ready_list), struct thread, elem);
   }
   else {
     return idle_thread;

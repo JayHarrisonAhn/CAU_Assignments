@@ -21,7 +21,7 @@ void test_loop(void *aux)
         for(int j=0; j<10000000; j++) {
         }
         // timer_msleep(300);
-        printf("%s: loop %d\n", t->name, i);
+        printf("-%s: loop %d-\n", t->name, i);
     }
 }
 
