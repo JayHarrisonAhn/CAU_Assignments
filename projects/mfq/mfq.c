@@ -20,6 +20,7 @@ void test_loop(void *aux)
         struct thread *t = thread_current();
         for(int j=0; j<10000000; j++) {
         }
+        // timer_msleep(300);
         printf("%s: loop %d\n", t->name, i);
     }
 }

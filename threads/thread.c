@@ -23,6 +23,10 @@
 /* List of processes in THREAD_READY state, that is, processes
    that are ready to run but not actually running. */
 static struct list ready_list;
+static struct list ready_list_fq0;
+static struct list ready_list_fq1;
+static struct list ready_list_fq2;
+static struct list ready_list_fq3;
 
 /* List of all processes.  Processes are added to this list
    when they are first scheduled and removed when they exit. */
@@ -56,6 +60,10 @@ static long long user_ticks;    /* # of timer ticks in user programs. */
 
 /* Scheduling. */
 #define TIME_SLICE 4            /* # of timer ticks to give each thread. */
+#define TIME_SLICE_FQ0 4
+#define TIME_SLICE_FQ1 5
+#define TIME_SLICE_FQ2 6
+#define TIME_SLICE_FQ3 7
 static unsigned thread_ticks;   /* # of timer ticks since last yield. */
 
 /* If false (default), use round-robin scheduler.
@@ -95,6 +103,10 @@ thread_init (void)
 
   lock_init (&tid_lock);
   list_init (&ready_list);
+  list_init (&ready_list_fq0);
+  list_init (&ready_list_fq1);
+  list_init (&ready_list_fq2);
+  list_init (&ready_list_fq3);
   list_init (&all_list);
   list_init (&sleep_list);
 
@@ -140,7 +152,23 @@ thread_tick (void)
     kernel_ticks++;
 
   /* Enforce preemption. */
-  if (++thread_ticks >= TIME_SLICE)
+  int time_slice;
+  switch (t->priority) {
+  case 0:
+    time_slice = TIME_SLICE_FQ0;
+    break;
+  case 1:
+    time_slice = TIME_SLICE_FQ1;
+    break;
+  case 2:
+    time_slice = TIME_SLICE_FQ2;
+    break;
+  case 3:
+    time_slice = TIME_SLICE_FQ3;
+    break;
+  }
+
+  if (++thread_ticks >= time_slice)
     intr_yield_on_return ();
 }
 
@@ -368,6 +396,7 @@ thread_yield (void)
   
   ASSERT (!intr_context ());
 
+  printf("yield %s %d\n", cur->name, thread_ticks);
   old_level = intr_disable ();
   if (cur != idle_thread) 
     list_push_back (&ready_list, &cur->elem);
@@ -552,10 +581,24 @@ alloc_frame (struct thread *t, size_t size)
 static struct thread *
 next_thread_to_run (void) 
 {
-  if (list_empty (&ready_list))
-    return idle_thread;
-  else
+  if (!list_empty (&ready_list_fq0)) {
+    return list_entry (list_pop_front (&ready_list_fq0), struct thread, elem);
+  }
+  else if (!list_empty (&ready_list_fq1)) {
+    return list_entry (list_pop_front (&ready_list_fq1), struct thread, elem);
+  }
+  else if (!list_empty (&ready_list_fq2)) {
+    return list_entry (list_pop_front (&ready_list_fq2), struct thread, elem);
+  }
+  else if (!list_empty (&ready_list_fq3)) {
+    return list_entry (list_pop_front (&ready_list_fq3), struct thread, elem);
+  }
+  else if (!list_empty (&ready_list)) {
     return list_entry (list_pop_front (&ready_list), struct thread, elem);
+  }
+  else {
+    return idle_thread;
+  }
 }
 
 /* Completes a thread switch by activating the new thread's page
