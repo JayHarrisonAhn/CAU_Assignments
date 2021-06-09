@@ -211,6 +211,7 @@ thread_create (const char *name, int priority,
   /* Initialize thread. */
   init_thread (t, name, priority);
   tid = t->tid = allocate_tid ();
+  t->age = 0;
 
   /* Stack frame for kernel_thread(). */
   kf = alloc_frame (t, sizeof *kf);
@@ -395,6 +396,7 @@ thread_yield (void)
   printf("yield %s %d\n", cur->name, thread_ticks);
   old_level = intr_disable ();
   if (cur != idle_thread) 
+    list_under_priority_get_age(cur->priority);
     thread_set_priority_lower(cur);
   cur->status = THREAD_READY;
   schedule ();
@@ -416,6 +418,28 @@ thread_foreach (thread_action_func *func, void *aux)
       struct thread *t = list_entry (e, struct thread, allelem);
       func (t, aux);
     }
+}
+
+/* T의 priority가 PRIORITY_UNDER보다 낮다면 T의 age를 1 증가 */
+void
+thread_age(struct thread *t, int priority_under)
+{
+  if (t == idle_thread)
+    return;
+  if (t->status == THREAD_READY) {
+    if ((t->priority) > priority_under){
+      t->age += 1;
+      printf("%s age 먹어서 %d 됨\n", t->name, t->age);
+    }
+  }
+}
+
+/* PRIORITY_UNDER 보다 낮은 우선순위의 Feedback Queue에 있는
+   thread들의 age를 1씩 증가 */
+void
+list_under_priority_get_age (int priority_under)
+{
+  thread_foreach(thread_age, priority_under);
 }
 
 /* Thread를 현재 level의 Feedback Queue의 제일 마지막에 집어넣기 */
