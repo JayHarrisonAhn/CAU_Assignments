@@ -32,5 +32,5 @@
 ![3](https://user-images.githubusercontent.com/30883319/121614088-f0e03f80-ca98-11eb-9e81-ecf05f95e315.JPG)
 ### Images and corresponding probability that predicted right
 ![4](https://user-images.githubusercontent.com/30883319/121614095-f3429980-ca98-11eb-983d-5b6a78bbd155.png)
-### Images and corresponding probability that predicted Wrong![Uploading 1.jpg…]()
+### Images and corresponding probability that predicted Wrong
 ![5](https://user-images.githubusercontent.com/30883319/121614098-f50c5d00-ca98-11eb-8c88-e94fcca7a636.png)
