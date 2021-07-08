@@ -14,10 +14,7 @@ def LCS_length():
           if dptable[i][j-1][0] > dptable[i-1][j][0]:
             dptable[i][j] = (dptable[i][j-1][0], (0, -1))
           else:
-            dptable[i][j] = (dptable[i-1][j][0], (-1, 0))
-  for i in dptable:
-    print(i)
-      
+            dptable[i][j] = (dptable[i-1][j][0], (-1, 0))      
   return dptable[-1][-1][0]
 
 
@@ -27,7 +24,6 @@ def LCS_print():
   lcs_string = ""
 
   while i!=0 and j!=0:
-    print(i, j)
     if X[i-1] == Y[j-1]:
       lcs_string += X[i-1]
       i-=1
@@ -39,7 +35,6 @@ def LCS_print():
       j += way[1]
       continue
   return lcs_string[::-1]
-    
 
 
 print(LCS_length())
