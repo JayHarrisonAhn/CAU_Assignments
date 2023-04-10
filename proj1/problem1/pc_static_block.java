@@ -16,10 +16,9 @@ public class pc_static_block {
 
         // Thread creation
         pc_static_block_thread[] threads = new pc_static_block_thread[NUM_THREADS];
-        double size_of_block =  (double) (NUM_END - NUM_START - 1) / NUM_THREADS;
         for (i=0; i<NUM_THREADS; i++) {
-            int thread_num_start = (int) (Math.ceil(NUM_START + (size_of_block * i)));
-            int thread_num_end = (int) (Math.floor(NUM_END - (size_of_block * (NUM_THREADS - i-1)) - 1));
+            int thread_num_start = (int) (Math.ceil(NUM_START + ((NUM_END - NUM_START) * ((double) i / NUM_THREADS))));
+            int thread_num_end = (int) (Math.ceil(NUM_START + ((NUM_END - NUM_START) * ((double) (i + 1) / NUM_THREADS))));
             threads[i] = new pc_static_block_thread(i, thread_num_start, thread_num_end, counter);
             threads[i].start();
         }
@@ -50,7 +49,7 @@ class pc_static_block_thread extends Thread {
     @Override
     public void run() {
         long startTime = System.currentTimeMillis();
-        for (int i=num_start; i<=num_end; i++) {
+        for (int i=num_start; i < num_end; i++) {
             if (isPrime(i)) counter.addCount();;
         }
         long endTime = System.currentTimeMillis();
