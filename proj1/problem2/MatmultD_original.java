@@ -30,8 +30,8 @@ public class MatmultD_original
         //printMatrix(b);
         printMatrix(c);
 
-        System.out.printf("thread_no: %d\n" , thread_no);
-        System.out.printf("Calculation Time: %d ms\n" , endTime-startTime);
+        //System.out.printf("thread_no: %d\n" , thread_no);
+        //System.out.printf("Calculation Time: %d ms\n" , endTime-startTime);
 
         System.out.printf("[thread_no]:%2d , [Time]:%4d ms\n", thread_no, endTime-startTime);
     }
