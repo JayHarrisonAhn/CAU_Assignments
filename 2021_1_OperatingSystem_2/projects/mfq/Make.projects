@@ -1,0 +1,8 @@
+# -*- makefile -*-
+
+# Sources for project 2.
+projects/mfq_SRC  = projects/mfq/mfq.c
+
+# Use below to add new sources 
+# projects/mfq_SRC += projects/mfq/mfqtesthelper.c
+
