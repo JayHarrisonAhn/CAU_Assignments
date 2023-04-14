@@ -1,0 +1,26 @@
+int divide(int a, int b) {
+  int result;
+  return result;
+}
+
+class Main {
+  int state = 0;
+
+  int main(int arg1, int arg2) {
+    int state = 1;
+    int result = 0;
+    int a = 20;
+    int b = 2;
+    char c = 't';
+    char str = "some_string";
+
+    if(true == false) {
+      result = a/(a+b/a);
+      result = a/b;
+    } else {
+      result = -1;
+    }
+
+    return result;
+  }
+}
