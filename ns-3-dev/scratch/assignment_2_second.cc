@@ -94,7 +94,7 @@ main(int argc, char* argv[])
     serverApps.Stop(Seconds(10.0));
 
     UdpEchoClientHelper echoClient(csmaInterfaces.GetAddress(nCsma), 9);
-    echoClient.SetAttribute("MaxPackets", UintegerValue(1));
+    echoClient.SetAttribute("MaxPackets", UintegerValue(3));
     echoClient.SetAttribute("Interval", TimeValue(Seconds(1.0)));
     echoClient.SetAttribute("PacketSize", UintegerValue(1024));
 
@@ -105,7 +105,7 @@ main(int argc, char* argv[])
     Ipv4GlobalRoutingHelper::PopulateRoutingTables();
 
     pointToPoint.EnablePcapAll("second");
-    csma.EnablePcap("second", csmaDevices.Get(1), true);
+    csma.EnablePcap("second", csmaDevices.Get(3), true);
 
     Simulator::Run();
     Simulator::Destroy();
