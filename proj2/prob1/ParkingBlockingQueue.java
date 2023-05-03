@@ -73,7 +73,7 @@ class Car_ABQ extends Thread {
 }
 
 
-public class ParkingGarageOperation_ABQ {
+public class ParkingBlockingQueue {
   public static void main(String[] args){
     ParkingGarage_ABQ parkingGarage = new ParkingGarage_ABQ(7);
     for (int i=1; i<= 10; i++) {
