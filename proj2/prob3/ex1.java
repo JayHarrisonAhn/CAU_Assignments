@@ -21,7 +21,7 @@ class Producer extends Thread {
     public void run() {
         while(true) {
             try {
-                sleep((int)(Math.random() * 500)); // stay within the parking garage
+                sleep((int)(Math.random() * 500));
                 System.out.println("Producer trying to put");
                 queue.put(0);
                 System.out.println("Producer put");
@@ -41,7 +41,7 @@ class Consumer extends Thread {
     public void run() {
         while(true) {
             try {
-                sleep((int)(Math.random() * 1000)); // stay within the parking garage
+                sleep((int)(Math.random() * 1000));
                 System.out.println("Consumer trying to take");
                 queue.take();
                 System.out.println("Consumer took");
