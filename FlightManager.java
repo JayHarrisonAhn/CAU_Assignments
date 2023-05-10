@@ -27,7 +27,7 @@ public class FlightManager {
         waitForAnyKey();
     }
 
-    public void findFlights(String from) {
+    public void findFlights(String airline) {
 
     }
 

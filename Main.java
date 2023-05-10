@@ -10,8 +10,13 @@ public class Main {
             switch(command) {
                 case 0:
                     flightManager.initialize();
+                    break;
                 case 1:
                     flightManager.insertRandomFlights();
+                    break;
+                case 2:
+                    DBManager.shared.createIndex();
+                    break;
             }
         }
     }
@@ -19,14 +24,13 @@ public class Main {
     private static int readCommand() {
         int command;
         clearConsole();
-
         System.out.println("""
                         Welcome to ROK Flight Manager.
 
                         0. Initial database scheme setup.
                         1. Insert random flights to DB.
-                        2. Find the number of flights from an airport.
-                        3. Find the number of flights of an airline.
+                        2. Create indices for queries.
+                        3. Find all flights in a airline.
                         """);
         while(true) {
             Scanner sc = new Scanner(System.in);

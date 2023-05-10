@@ -20,9 +20,9 @@ public class DBManager {
 
     public void insertData(Flight flight) throws Exception {
         PreparedStatement preparedStatement = con.prepareStatement("""
-INSERT INTO `flight` (`flight_id`, `airline_id`, `from`, `to`, `fuel`) VALUES (?, ?, ?, ?, ?);
+INSERT INTO `flight` (`flight_id`, `airline_id`, `departure`, `from`, `to`, `fuel`) VALUES (?, ?, ?, ?, ?, ?);
 """);
-        preparedStatement.setInt(1, flight.id);
+        preparedStatement.setInt(1, flight.flight_id);
         preparedStatement.setString(2, flight.airline_id);
         preparedStatement.setString(3, flight.from);
         preparedStatement.setString(4, flight.to);
@@ -33,13 +33,15 @@ INSERT INTO `flight` (`flight_id`, `airline_id`, `from`, `to`, `fuel`) VALUES (?
     public void createTable() throws Exception {
         PreparedStatement preparedStatement = con.prepareStatement("""
                 CREATE TABLE `flight` (
+                  `id` int NOT NULL AUTO_INCREMENT,
                   `flight_id` int NOT NULL,
                   `airline_id` char(2) NOT NULL,
                   `from` char(3) NOT NULL,
                   `to` char(3) NOT NULL,
                   `fuel` int NOT NULL,
-                  PRIMARY KEY (`flight_id`,`airline_id`)
-                ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci
+                  PRIMARY KEY (`flight_id`,`airline_id`),
+                  UNIQUE KEY `id_UNIQUE` (`id`)
+                ) ENGINE=InnoDB AUTO_INCREMENT=2 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci
 """);
         preparedStatement.execute();
     }
@@ -59,6 +61,10 @@ INSERT INTO `flight` (`flight_id`, `airline_id`, `from`, `to`, `fuel`) VALUES (?
             System.err.println("con 오류:" + e.getMessage());
             e.printStackTrace();
         }
+    }
+
+    public void createIndex() {
+
     }
 
     public static void main(String[] args) {

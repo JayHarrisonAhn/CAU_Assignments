@@ -1,14 +1,14 @@
 import java.util.Random;
 
 public class Flight {
-    int id;
+    int flight_id;
     String airline_id;
     String from;
     String to;
     int fuel;
 
-    Flight(int id, String airline_id, String from, String to, int fuel) {
-        this.id = id;
+    Flight(int flight_id, String airline_id, String from, String to, int fuel) {
+        this.flight_id = flight_id;
         this.airline_id = airline_id;
         this.from = from;
         this.to = to;
