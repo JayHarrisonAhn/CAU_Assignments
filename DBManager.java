@@ -30,10 +30,23 @@ INSERT INTO `flight` (`flight_id`, `airline_id`, `departure`, `from`, `to`, `fue
         preparedStatement.execute();
     }
 
+    public void insertData(int id, Flight flight) throws Exception {
+        PreparedStatement preparedStatement = con.prepareStatement("""
+INSERT INTO `flight` (`id`, `flight_id`, `airline_id`, `from`, `to`, `fuel`) VALUES (?, ?, ?, ?, ?, ?);
+""");
+        preparedStatement.setInt(1, id);
+        preparedStatement.setInt(2, flight.flight_id);
+        preparedStatement.setString(3, flight.airline_id);
+        preparedStatement.setString(4, flight.from);
+        preparedStatement.setString(5, flight.to);
+        preparedStatement.setInt(6, flight.fuel);
+        preparedStatement.execute();
+    }
+
     public void createTable() throws Exception {
         PreparedStatement preparedStatement = con.prepareStatement("""
                 CREATE TABLE `flight` (
-                  `id` int NOT NULL AUTO_INCREMENT,
+                  `id` int NOT NULL,
                   `flight_id` int NOT NULL,
                   `airline_id` char(2) NOT NULL,
                   `from` char(3) NOT NULL,
@@ -41,7 +54,7 @@ INSERT INTO `flight` (`flight_id`, `airline_id`, `departure`, `from`, `to`, `fue
                   `fuel` int NOT NULL,
                   PRIMARY KEY (`flight_id`,`airline_id`),
                   UNIQUE KEY `id_UNIQUE` (`id`)
-                ) ENGINE=InnoDB AUTO_INCREMENT=2 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci
+                ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci
 """);
         preparedStatement.execute();
     }

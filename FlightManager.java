@@ -20,9 +20,14 @@ public class FlightManager {
         System.out.println("How many flights to add?");
         int bound = getInputInt();
         for(int i=0; i<bound; i++) {
-            try {
-                DBManager.shared.insertData(Flight.random());
-            } catch(Exception e) { }
+            while(true) {
+                try {
+                    DBManager.shared.insertData(i+1, Flight.random());
+                    break;
+                } catch(Exception e) {
+                    System.out.println(e.getMessage());
+                }
+            }
         }
         waitForAnyKey();
     }
