@@ -15,7 +15,9 @@ public class Main {
                     flightManager.insertRandomFlights();
                     break;
                 case 2:
-                    DBManager.shared.createIndex();
+                    DBManager.shared.createIndex("airline_id");
+                    DBManager.shared.createIndex("from");
+                    DBManager.shared.createIndex("to");
                     break;
             }
         }

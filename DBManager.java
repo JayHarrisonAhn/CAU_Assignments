@@ -1,4 +1,10 @@
+import java.io.File;
+import java.io.FileOutputStream;
 import java.sql.*;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.BitSet;
+import java.util.Objects;
 
 public class DBManager {
     static DBManager shared;
@@ -10,10 +16,6 @@ public class DBManager {
         shared = new DBManager();
     }
     private Connection con;
-    Connection getCon() {
-        return con;
-    }
-    private Statement stmt;
     private DBManager() {
         connectDB();
     }
@@ -43,6 +45,10 @@ INSERT INTO `flight` (`id`, `flight_id`, `airline_id`, `from`, `to`, `fuel`) VAL
         preparedStatement.execute();
     }
 
+    public void readData() throws Exception {
+
+    }
+
     public void createTable() throws Exception {
         PreparedStatement preparedStatement = con.prepareStatement("""
                 CREATE TABLE `flight` (
@@ -68,7 +74,6 @@ INSERT INTO `flight` (`id`, `flight_id`, `airline_id`, `from`, `to`, `fuel`) VAL
 
         try {
             con = DriverManager.getConnection("jdbc:mysql://" + server + "/" + database + "?useSSL=false&allowPublicKeyRetrieval=true", user_name, password);
-            stmt = con.createStatement();
             System.out.println("정상적으로 연결되었습니다.");
         } catch(SQLException e) {
             System.err.println("con 오류:" + e.getMessage());
@@ -76,15 +81,97 @@ INSERT INTO `flight` (`id`, `flight_id`, `airline_id`, `from`, `to`, `fuel`) VAL
         }
     }
 
-    public void createIndex() {
+    public void createIndex(String column) {
+        try {
+            String[] possibleRecords = possibleRecords(column);
 
+            for(int i=0; true; i++) {
+                PreparedStatement stmt = con.prepareStatement("""
+SELECT * FROM cau_dbs_dev.flight ORDER BY id LIMIT ?, 128;
+""");
+                stmt.setInt(1, i * 128);
+                ResultSet queryResult = stmt.executeQuery();
+                if (!queryResult.isBeforeFirst() )
+                    break;
+
+                boolean[][] bitIndices = new boolean[possibleRecords.length][128];
+                for(boolean[] bitIndex : bitIndices) {
+                    Arrays.fill(bitIndex, false);
+                }
+                for(int j=0; queryResult.next(); j++) {
+                    String record = queryResult.getString(column);
+                    for(int i_possibleRecords = 0; i_possibleRecords < possibleRecords.length; i_possibleRecords++) {
+                        bitIndices[i_possibleRecords][j] = Objects.equals(record, possibleRecords[i_possibleRecords]);
+                    }
+                }
+
+                for(int i_possibleRecords = 0; i_possibleRecords < possibleRecords.length; i_possibleRecords++) {
+                    saveIndexFile(column, possibleRecords[i_possibleRecords], i, bitIndices[i_possibleRecords]);
+                }
+            }
+        } catch(SQLException e) {
+            System.err.println("con 오류:" + e.getMessage());
+            e.printStackTrace();
+        }
+    }
+
+    private String[] possibleRecords(String column) throws SQLException {
+        PreparedStatement stmt = con.prepareStatement(String.format("SELECT DISTINCT `%s` FROM cau_dbs_dev.flight;", column));
+
+        ResultSet result = stmt.executeQuery();
+        ArrayList<String> records = new ArrayList<String>();
+        while(result.next()) {
+            records.add(result.getString(column));
+        }
+        String[] results = new String[records.size()];
+        return records.toArray(results);
+    }
+
+    private void saveIndexFile(String column, String record, int index, boolean[] data) {
+        try {
+            new File(String.format("index/%s/%s", column, record)).mkdirs();
+            FileOutputStream index1 = new FileOutputStream(String.format("index/%s/%s/%d.idx", column, record, index));
+            boolean[] testbools = new boolean[]{false, false, false, false, false, false, false, true};
+            byte[] testbytes = toByteArray(testbools);
+            boolean[] testresults = toBooleanArray(testbytes);
+
+            byte[] bytes = toByteArray(data);
+            index1.write(bytes);
+            index1.close();
+        } catch(Exception e) {
+            System.out.println(e.getMessage());
+        }
+    }
+
+    boolean[] toBooleanArray(byte[] bytes) {
+        BitSet bits = BitSet.valueOf(bytes);
+        boolean[] bools = new boolean[bytes.length * 8];
+        for (int i = bits.nextSetBit(0); i != -1; i = bits.nextSetBit(i+1)) {
+            bools[i] = true;
+        }
+        return bools;
+    }
+
+    byte[] toByteArray(boolean[] bools) {
+        BitSet bits = new BitSet(bools.length);
+        for (int i = 0; i < bools.length; i++) {
+            if (bools[i]) {
+                bits.set(i);
+            }
+        }
+
+        byte[] bytes = bits.toByteArray();
+        if (bytes.length * 8 >= bools.length) {
+            return bytes;
+        } else {
+            return Arrays.copyOf(bytes, bools.length / 8 + (bools.length % 8 == 0 ? 0 : 1));
+        }
     }
 
     public static void main(String[] args) {
         try {
             DBManager.initialize();
-            DBManager.shared.createTable();
-            DBManager.shared.insertData(new Flight(126, "OZ", "ICN", "CJU", 314));
+            DBManager.shared.createIndex("to");
         } catch(Exception e) {
             System.out.println(e.getMessage());
         }
