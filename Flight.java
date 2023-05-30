@@ -25,6 +25,6 @@ public class Flight {
         return new Flight(id, airline_id, from, to, fuel);
     }
 
-    static String[] airlines = {"KE", "OZ", "7Z", "LJ", "BX", "ZE", "TW", "RS"};
+    static String[] airlines = {"KE", "OZ", "LJ", "BX", "7C", "ZE", "TW", "RS", "4V", "YP", "RF", "4H", "KJ"};
     static String[] airports = {"ICN", "GMP", "PUS", "CJU", "MWX", "YNY", "CJJ", "TAE", "USN", "RSU", "HIN", "KPO", "KUV", "WJU", "KWJ"};
 }

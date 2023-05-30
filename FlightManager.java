@@ -19,10 +19,11 @@ public class FlightManager {
     public void insertRandomFlights() {
         System.out.println("How many flights to add?");
         int bound = getInputInt();
-        for(int i=0; i<bound; i++) {
+        int numOfRecords = DBManager.shared.numOfRecords();
+        for(int i=numOfRecords; i<numOfRecords + bound; i++) {
             while(true) {
                 try {
-                    DBManager.shared.insertData(i+1, Flight.random());
+                    DBManager.shared.insertData(i, Flight.random());
                     break;
                 } catch(Exception e) {
                     System.out.println(e.getMessage());

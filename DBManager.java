@@ -1,6 +1,5 @@
 import java.io.File;
 import java.io.FileInputStream;
-import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.sql.*;
 import java.util.*;
@@ -72,7 +71,6 @@ INSERT INTO `flight` (`id`, `flight_id`, `airline_id`, `from`, `to`, `fuel`) VAL
     public void createIndex(String column) {
         try {
             String[] possibleRecords = possibleRecords(column);
-
             for(int i=0; true; i++) {
                 PreparedStatement stmt = con.prepareStatement("""
 SELECT * FROM cau_dbs_dev.flight ORDER BY id LIMIT ?, ?;
@@ -97,7 +95,7 @@ SELECT * FROM cau_dbs_dev.flight ORDER BY id LIMIT ?, ?;
                     saveIndexFile(column, possibleRecords[i_possibleRecords], i, bits[i_possibleRecords]);
                 }
             }
-        } catch(SQLException e) {
+        } catch(Exception e) {
             System.err.println("con 오류:" + e.getMessage());
             e.printStackTrace();
         }
@@ -107,12 +105,28 @@ SELECT * FROM cau_dbs_dev.flight ORDER BY id LIMIT ?, ?;
         PreparedStatement stmt = con.prepareStatement(String.format("SELECT DISTINCT `%s` FROM cau_dbs_dev.flight;", column));
 
         ResultSet result = stmt.executeQuery();
-        ArrayList<String> records = new ArrayList<String>();
+        ArrayList<String> records = new ArrayList<>();
         while(result.next()) {
             records.add(result.getString(column));
         }
         String[] results = new String[records.size()];
         return records.toArray(results);
+    }
+
+    int numOfRecords() {
+        try {
+            PreparedStatement stmt = con.prepareStatement("SELECT MAX(id) FROM cau_dbs_dev.flight;");
+            ResultSet resultSet = stmt.executeQuery();
+            resultSet.next();
+            return resultSet.getInt(1) + 1;
+        } catch (Exception e) {
+            return 0;
+        }
+    }
+
+    private int numOfIndexFiles(String column, String value) {
+        File dir = new File(String.format("index/%s/%s", column, value));
+        return dir.listFiles().length;
     }
 
     private void saveIndexFile(String column, String record, int index, BitSet data) {
@@ -133,8 +147,12 @@ SELECT * FROM cau_dbs_dev.flight ORDER BY id LIMIT ?, ?;
     }
 
     public ArrayList<Integer> searchIndex(Map<String, String> parameters) throws Exception {
+        String firstKey = parameters.keySet().toArray(new String[parameters.size()])[0];
+        String firstValue = parameters.get(firstKey);
+        int numOfIndexFilesPerValue = numOfIndexFiles(firstKey, firstValue);
+
         ArrayList<Integer> searchedIndices = new ArrayList<>();
-        for (int i = 0; i < 16; i++) {
+        for (int i = 0; i < numOfIndexFilesPerValue; i++) {
             BitSet[] bitmapIndices = new BitSet[parameters.size()];
             for(int j=0; j<bitmapIndices.length; j++) bitmapIndices[j] = new BitSet(blockSizeBit);
 
@@ -153,6 +171,8 @@ SELECT * FROM cau_dbs_dev.flight ORDER BY id LIMIT ?, ?;
             for (int j = bitmapIndicesAND.nextSetBit(0); j != -1; j = bitmapIndicesAND.nextSetBit(j + 1)) {
                 searchedIndices.add(i * blockSizeBit + j);
             }
+
+
         }
         return searchedIndices;
     }
