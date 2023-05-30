@@ -3,10 +3,7 @@ import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.sql.*;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.BitSet;
-import java.util.Objects;
+import java.util.*;
 
 public class DBManager {
     static DBManager shared;
@@ -14,25 +11,13 @@ public class DBManager {
     String database = "cau_dbs_dev"; // MySQL DATABASE 이름
     String user_name = "root"; //  MySQL 서버 아이디
     String password = "mysql"; // MySQL 서버 비밀번호
-    int blockSizeBit = 128;
+    int blockSizeBit = 512;
     static void initialize() {
         shared = new DBManager();
     }
     private Connection con;
     private DBManager() {
         connectDB();
-    }
-
-    public void insertData(Flight flight) throws Exception {
-        PreparedStatement preparedStatement = con.prepareStatement("""
-INSERT INTO `flight` (`flight_id`, `airline_id`, `departure`, `from`, `to`, `fuel`) VALUES (?, ?, ?, ?, ?, ?);
-""");
-        preparedStatement.setInt(1, flight.flight_id);
-        preparedStatement.setString(2, flight.airline_id);
-        preparedStatement.setString(3, flight.from);
-        preparedStatement.setString(4, flight.to);
-        preparedStatement.setInt(5, flight.fuel);
-        preparedStatement.execute();
     }
 
     public void insertData(int id, Flight flight) throws Exception {
@@ -98,19 +83,18 @@ SELECT * FROM cau_dbs_dev.flight ORDER BY id LIMIT ?, ?;
                 if (!queryResult.isBeforeFirst() )
                     break;
 
-                boolean[][] bitIndices = new boolean[possibleRecords.length][128];
-                for(boolean[] bitIndex : bitIndices) {
-                    Arrays.fill(bitIndex, false);
-                }
+                BitSet[] bits = new BitSet[possibleRecords.length];
+                for(int j=0; j<bits.length; j++) bits[j] = new BitSet(blockSizeBit);
+
                 for(int j=0; queryResult.next(); j++) {
                     String record = queryResult.getString(column);
                     for(int i_possibleRecords = 0; i_possibleRecords < possibleRecords.length; i_possibleRecords++) {
-                        bitIndices[i_possibleRecords][j] = Objects.equals(record, possibleRecords[i_possibleRecords]);
+                        bits[i_possibleRecords].set(j, Objects.equals(record, possibleRecords[i_possibleRecords]));
                     }
                 }
 
                 for(int i_possibleRecords = 0; i_possibleRecords < possibleRecords.length; i_possibleRecords++) {
-                    saveIndexFile(column, possibleRecords[i_possibleRecords], i, bitIndices[i_possibleRecords]);
+                    saveIndexFile(column, possibleRecords[i_possibleRecords], i, bits[i_possibleRecords]);
                 }
             }
         } catch(SQLException e) {
@@ -131,12 +115,11 @@ SELECT * FROM cau_dbs_dev.flight ORDER BY id LIMIT ?, ?;
         return records.toArray(results);
     }
 
-    private void saveIndexFile(String column, String record, int index, boolean[] data) {
+    private void saveIndexFile(String column, String record, int index, BitSet data) {
         try {
             new File(String.format("index/%s/%s", column, record)).mkdirs();
             FileOutputStream indexFile = new FileOutputStream(String.format("index/%s/%s/%d.idx", column, record, index));
-            byte[] bytes = toByteArray(data);
-            indexFile.write(bytes);
+            indexFile.write(data.toByteArray());
             indexFile.close();
         } catch(Exception e) {
             System.out.println(e.getMessage());
@@ -149,56 +132,40 @@ SELECT * FROM cau_dbs_dev.flight ORDER BY id LIMIT ?, ?;
         return bytes;
     }
 
-    public ArrayList<Integer> searchIndex(String[] columns, String[] conditions) throws Exception {
-        ArrayList<Integer> searchedIndices = new ArrayList<Integer>();
-        for (int i = 0; i < 8; i++) {
-            byte[][] indexFiles = new byte[columns.length][blockSizeBit/8];
-            byte[] xorIndex = new byte[blockSizeBit/8];
-            Arrays.fill(xorIndex, (byte) 255);
-            for (int i_column = 0; i_column < columns.length; i_column++) {
-                indexFiles[i_column] = readIndexFile(columns[i_column], conditions[i_column], i);
-                for(int i_index=0; i_index<xorIndex.length; i_index++)
-                    xorIndex[i_index] = (byte) (xorIndex[i_index] & indexFiles[i_column][i_index]);
+    public ArrayList<Integer> searchIndex(Map<String, String> parameters) throws Exception {
+        ArrayList<Integer> searchedIndices = new ArrayList<>();
+        for (int i = 0; i < 16; i++) {
+            BitSet[] bitmapIndices = new BitSet[parameters.size()];
+            for(int j=0; j<bitmapIndices.length; j++) bitmapIndices[j] = new BitSet(blockSizeBit);
+
+            for (int i_column = 0; i_column < parameters.size(); i_column++) {
+                String parameterKey = parameters.keySet().toArray(new String[parameters.size()])[i_column];
+                byte[] indexFileBytes = readIndexFile(parameterKey, parameters.get(parameterKey), i);
+                bitmapIndices[i_column] = BitSet.valueOf(indexFileBytes);
             }
-            boolean[] indexFilesBoolean = toBooleanArray(xorIndex);
-            for (int i_index=0; i_index<indexFilesBoolean.length; i_index++) {
-                if(indexFilesBoolean[i_index])
-                    searchedIndices.add(i * blockSizeBit + i_index);
+
+            BitSet bitmapIndicesAND = new BitSet(blockSizeBit){{
+                set(0, blockSizeBit);
+            }};
+            for (int j = 0; j < bitmapIndices.length; j++) {
+                bitmapIndicesAND.and(bitmapIndices[j]);
+            }
+            for (int j = bitmapIndicesAND.nextSetBit(0); j != -1; j = bitmapIndicesAND.nextSetBit(j + 1)) {
+                searchedIndices.add(i * blockSizeBit + j);
             }
         }
         return searchedIndices;
     }
 
-    boolean[] toBooleanArray(byte[] bytes) {
-        BitSet bits = BitSet.valueOf(bytes);
-        boolean[] bools = new boolean[bytes.length * 8];
-        for (int i = bits.nextSetBit(0); i != -1; i = bits.nextSetBit(i+1)) {
-            bools[i] = true;
-        }
-        return bools;
-    }
-
-    byte[] toByteArray(boolean[] bools) {
-        BitSet bits = new BitSet(bools.length);
-        for (int i = 0; i < bools.length; i++) {
-            if (bools[i]) {
-                bits.set(i);
-            }
-        }
-
-        byte[] bytes = bits.toByteArray();
-        if (bytes.length * 8 >= bools.length) {
-            return bytes;
-        } else {
-            return Arrays.copyOf(bytes, bools.length / 8 + (bools.length % 8 == 0 ? 0 : 1));
-        }
-    }
-
     public static void main(String[] args) {
         try {
             DBManager.initialize();
-            ArrayList<Integer> indices = DBManager.shared.searchIndex(new String[]{"airline_id", "from"}, new String[]{"7Z", "CJJ"});
+            ArrayList<Integer> indices = DBManager.shared.searchIndex(new HashMap<>() {{
+                put("airline_id", "ZE");
+                put("from", "CJJ");
+            }});
             System.out.println(indices);
+            System.out.println(indices.size());
         } catch(Exception e) {
             System.out.println(e.getMessage());
         }

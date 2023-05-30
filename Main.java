@@ -9,7 +9,7 @@ public class Main {
             int command = readCommand();
             switch(command) {
                 case 0:
-                    flightManager.initialize();
+                    flightManager.initializeDatabase();
                     break;
                 case 1:
                     flightManager.insertRandomFlights();
@@ -18,6 +18,9 @@ public class Main {
                     DBManager.shared.createIndex("airline_id");
                     DBManager.shared.createIndex("from");
                     DBManager.shared.createIndex("to");
+                    break;
+                case 3:
+                    flightManager.searchAndCountFlights();
                     break;
             }
         }
@@ -32,7 +35,7 @@ public class Main {
                         0. Initial database scheme setup.
                         1. Insert random flights to DB.
                         2. Create indices for queries.
-                        3. Find all flights in a airline.
+                        3. Count flights with airline, airport_from and airport_to.
                         """);
         while(true) {
             Scanner sc = new Scanner(System.in);

@@ -26,5 +26,5 @@ public class Flight {
     }
 
     static String[] airlines = {"KE", "OZ", "7Z", "LJ", "BX", "ZE", "TW", "RS"};
-    static String[] airports = {"ICN", "GMP", "PUS", "CJU", "MWX", "YNY", "CJJ", "TAE"};
+    static String[] airports = {"ICN", "GMP", "PUS", "CJU", "MWX", "YNY", "CJJ", "TAE", "USN", "RSU", "HIN", "KPO", "KUV", "WJU", "KWJ"};
 }
