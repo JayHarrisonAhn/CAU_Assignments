@@ -118,7 +118,12 @@ SELECT * FROM cau_dbs_dev.flight ORDER BY id LIMIT ?, ?;
             PreparedStatement stmt = con.prepareStatement("SELECT MAX(id) FROM cau_dbs_dev.flight;");
             ResultSet resultSet = stmt.executeQuery();
             resultSet.next();
-            return resultSet.getInt(1) + 1;
+            int maxID = resultSet.getInt(1);
+            if(maxID == 0) {
+                return 0;
+            } else {
+                return maxID + 1;
+            }
         } catch (Exception e) {
             return 0;
         }
