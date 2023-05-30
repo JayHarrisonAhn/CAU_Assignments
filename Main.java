@@ -22,6 +22,9 @@ public class Main {
                 case 3:
                     flightManager.searchAndCountFlights();
                     break;
+                case 4:
+                    flightManager.searchAndPrintFlights();
+                    break;
             }
         }
     }
@@ -36,12 +39,13 @@ public class Main {
                         1. Insert random flights to DB.
                         2. Create indices for queries.
                         3. Count flights with airline, airport_from and airport_to.
+                        4. Search flights with airline, airport_from and airport_to.
                         """);
         while(true) {
             Scanner sc = new Scanner(System.in);
             try {
                 command = sc.nextInt();
-                if(command >= 0 && command < 4) {
+                if(command >= 0 && command < 5) {
                     break;
                 } else {
                     System.out.println("unreachable command");

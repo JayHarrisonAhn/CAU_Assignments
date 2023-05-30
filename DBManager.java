@@ -32,8 +32,20 @@ INSERT INTO `flight` (`id`, `flight_id`, `airline_id`, `from`, `to`, `fuel`) VAL
         preparedStatement.execute();
     }
 
-    public void readData() throws Exception {
-
+    public Flight selectData(int id) throws SQLException {
+        PreparedStatement preparedStatement = con.prepareStatement("""
+SELECT * FROM cau_dbs_dev.flight WHERE `id`=?;
+""");
+        preparedStatement.setInt(1, id);
+        ResultSet resultSet = preparedStatement.executeQuery();
+        resultSet.next();
+        return new Flight(
+                resultSet.getInt("flight_id"),
+                resultSet.getString("airline_id"),
+                resultSet.getString("from"),
+                resultSet.getString("to"),
+                resultSet.getInt("fuel")
+        );
     }
 
     public void createTable() throws Exception {
@@ -176,8 +188,6 @@ SELECT * FROM cau_dbs_dev.flight ORDER BY id LIMIT ?, ?;
             for (int j = bitmapIndicesAND.nextSetBit(0); j != -1; j = bitmapIndicesAND.nextSetBit(j + 1)) {
                 searchedIndices.add(i * blockSizeBit + j);
             }
-
-
         }
         return searchedIndices;
     }
