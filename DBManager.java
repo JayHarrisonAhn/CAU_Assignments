@@ -150,7 +150,14 @@ SELECT * FROM cau_dbs_dev.flight ORDER BY id LIMIT ?, ?;
         try {
             new File(String.format("index/%s/%s", column, record)).mkdirs();
             FileOutputStream indexFile = new FileOutputStream(String.format("index/%s/%s/%d.idx", column, record, index));
-            indexFile.write(data.toByteArray());
+            byte[] dataBytes = data.toByteArray();
+            byte[] bytesToWrite = new byte[(int)Math.ceil((double)data.size()/8)];
+            for(int i=0; i<bytesToWrite.length; i++) {
+                if(i<dataBytes.length) bytesToWrite[i] = dataBytes[i];
+                else bytesToWrite[i] = 0;
+            }
+
+            indexFile.write(bytesToWrite);
             indexFile.close();
         } catch(Exception e) {
             System.out.println(e.getMessage());
