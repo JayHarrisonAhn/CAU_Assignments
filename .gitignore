@@ -474,3 +474,5 @@ $RECYCLE.BIN/
 # End of https://www.toptal.com/developers/gitignore/api/python,jupyternotebooks,windows,macos,pycharm,pycharm+iml,pycharm+all
 
 data/
+logs/
+log*
