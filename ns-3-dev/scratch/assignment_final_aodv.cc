@@ -1,4 +1,5 @@
 #include "ns3/aodv-module.h"
+#include "ns3/dsr-module.h"
 #include "ns3/dsdv-module.h"
 #include "ns3/core-module.h"
 #include "ns3/network-module.h"
@@ -91,7 +92,7 @@ int main (int argc, char **argv)
 
 //-----------------------------------------------------------------------------
 AodvExample::AodvExample () :
-  size (50),
+  size (10),
   simTime (50),
   pcap (false),
   printRoutes (false)
@@ -215,7 +216,7 @@ AodvExample::CreateNodes ()
   mobilityS.SetMobilityModel("ns3::RandomWalk2dMobilityModel", 
                              "Bounds", RectangleValue(Rectangle(0, 100, 0, 100)),
                              "Direction", StringValue("ns3::UniformRandomVariable[Min=0|Max=360]"),
-                             "Speed", StringValue("ns3::ConstantRandomVariable[Constant=3]"));
+                             "Speed", StringValue("ns3::ConstantRandomVariable[Constant=50]"));
   mobilityS.Install(nodes);
 }
 
@@ -245,16 +246,22 @@ AodvExample::InstallInternetStack ()
   
   InternetStackHelper stack;
 
-  // AODV
-  AodvHelper aodv;
-  // you can configure AODV attributes here using aodv.Set(name, value)
-  stack.SetRoutingHelper (aodv); // has effect on the next Install ()
-  stack.Install (nodes);
-
-  // DSDV
-  // DsdvHelper dsdv;
-  // stack.SetRoutingHelper (dsdv);
+  //////////////////// AODV ////////////////////
+  // AodvHelper aodv;
+  // // you can configure AODV attributes here using aodv.Set(name, value)
+  // stack.SetRoutingHelper (aodv); // has effect on the next Install ()
   // stack.Install (nodes);
+
+  //////////////////// DSR  ////////////////////
+  // DsrHelper dsr;
+  // DsrMainHelper dsrMain;
+  // stack.Install (nodes);
+  // dsrMain.Install (dsr, nodes);
+
+  //////////////////// DSDV ////////////////////
+  DsdvHelper dsdv;
+  stack.SetRoutingHelper (dsdv);
+  stack.Install (nodes);
 
   Ipv4AddressHelper address;
   address.SetBase ("10.0.0.0", "255.0.0.0");
@@ -265,6 +272,13 @@ AodvExample::InstallInternetStack ()
 	serverAddress[i] = Address (interfaces.GetAddress (i));
   }
   
+  // Enable tracing
+  AsciiTraceHelper ascii;
+  Ptr<OutputStreamWrapper> stream = ascii.CreateFileStream("dsr-throughput.tr");
+  
+  stack.EnableAsciiIpv4All(stream);
+
+
 /*
   if (printRoutes)
     {
