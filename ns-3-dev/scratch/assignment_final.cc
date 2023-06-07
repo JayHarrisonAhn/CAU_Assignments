@@ -1,4 +1,5 @@
 #include "ns3/aodv-module.h"
+#include "ns3/dsdv-module.h"
 #include "ns3/core-module.h"
 #include "ns3/network-module.h"
 #include "ns3/internet-module.h"
@@ -44,7 +45,8 @@ private:
   /// Print routes if true
   bool printRoutes;
   
-  string topology = "/Users/songchihyun/Desktop/2023-1학기/ns3/ns-allinone-3.37/ns-3.37/scratch/manet100.csv";
+  // string topology = "/Users/songchihyun/Desktop/2023-1학기/ns3/ns-allinone-3.37/ns-3.37/scratch/manet100.csv";
+  string topology = "./scratch/manet100.csv";
   
   double txrange = 50;
   
@@ -89,7 +91,7 @@ int main (int argc, char **argv)
 
 //-----------------------------------------------------------------------------
 AodvExample::AodvExample () :
-  size (10),
+  size (50),
   simTime (50),
   pcap (false),
   printRoutes (false)
@@ -210,7 +212,10 @@ AodvExample::CreateNodes ()
   
   MobilityHelper mobilityS;
   mobilityS.SetPositionAllocator(positionAllocS);
-  mobilityS.SetMobilityModel("ns3::ConstantPositionMobilityModel"); //whatever it is
+  mobilityS.SetMobilityModel("ns3::RandomWalk2dMobilityModel", 
+                             "Bounds", RectangleValue(Rectangle(0, 100, 0, 100)),
+                             "Direction", StringValue("ns3::UniformRandomVariable[Min=0|Max=360]"),
+                             "Speed", StringValue("ns3::ConstantRandomVariable[Constant=3]"));
   mobilityS.Install(nodes);
 }
 
@@ -238,11 +243,19 @@ void
 AodvExample::InstallInternetStack ()
 {
   
+  InternetStackHelper stack;
+
+  // AODV
   AodvHelper aodv;
   // you can configure AODV attributes here using aodv.Set(name, value)
-  InternetStackHelper stack;
   stack.SetRoutingHelper (aodv); // has effect on the next Install ()
   stack.Install (nodes);
+
+  // DSDV
+  // DsdvHelper dsdv;
+  // stack.SetRoutingHelper (dsdv);
+  // stack.Install (nodes);
+
   Ipv4AddressHelper address;
   address.SetBase ("10.0.0.0", "255.0.0.0");
   interfaces = address.Assign (devices);
