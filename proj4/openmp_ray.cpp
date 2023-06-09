@@ -1,8 +1,11 @@
+#define _CRT_SECURE_NO_WARNINGS
+
 #include <stdio.h>
 #include <string.h>
 #include <stdlib.h>
 #include <time.h>
 #include <math.h>
+#include <omp.h>
 
 #define CUDA 0
 #define OPENMP 1
@@ -94,7 +97,10 @@ int main(int argc, char* argv[])
 		no_threads=atoi(argv[1]);
 	}
 
+	clock_t tStart = clock();
+
 	Sphere *temp_s = (Sphere*)malloc( sizeof(Sphere) * SPHERES );
+#pragma omp parallel for num_threads(no_threads) shared(temp_s)
 	for (int i=0; i<SPHERES; i++) {
 		temp_s[i].r = rnd( 1.0f );
 		temp_s[i].g = rnd( 1.0f );
@@ -106,8 +112,10 @@ int main(int argc, char* argv[])
 	}
 	
 	bitmap=(unsigned char*)malloc(sizeof(unsigned char)*DIM*DIM*4);
+#pragma omp parallel for num_threads(no_threads) shared(temp_s, bitmap) firstprivate(x,y) collapse(2)
 	for (x=0;x<DIM;x++) 
 		for (y=0;y<DIM;y++) kernel(x,y,temp_s,bitmap);
+	printf("Time : %.0fms\n", (double)(clock() - tStart));
 	ppm_write(bitmap,DIM,DIM,fp);
 
 	fclose(fp);
