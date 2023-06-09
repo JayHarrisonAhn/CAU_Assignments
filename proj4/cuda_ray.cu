@@ -11,12 +11,13 @@
 #define rnd( x ) (x * rand() / RAND_MAX)
 #define INF 2e10f
 #define DIM 2048
+#define THREADS 1024
 
 struct Sphere {
     float   r,b,g;
     float   radius;
     float   x,y,z;
-    float hit( float ox, float oy, float *n ) {
+    __device__ float hit( float ox, float oy, float *n ) {
         float dx = ox - x;
         float dy = oy - y;
         if (dx*dx + dy*dy < radius*radius) {
@@ -28,32 +29,35 @@ struct Sphere {
     }
 };
 
-void kernel(int x, int y, Sphere* s, unsigned char* ptr)
+__global__ void kernel(Sphere* s, unsigned char* ptr)
 {
-	int offset = x + y*DIM;
-	float ox = (x - DIM/2);
-	float oy = (y - DIM/2);
+	int x = blockIdx.x;
+	for(int y=threadIdx.x; y<DIM; y+=blockDim.x) {
+		int offset = x + y*DIM;
+		float ox = (x - DIM/2);
+		float oy = (y - DIM/2);
 
-	//printf("x:%d, y:%d, ox:%f, oy:%f\n",x,y,ox,oy);
+		//printf("x:%d, y:%d, ox:%f, oy:%f\n",x,y,ox,oy);
 
-	float r=0, g=0, b=0;
-	float   maxz = -INF;
-	for(int i=0; i<SPHERES; i++) {
-		float   n;
-		float   t = s[i].hit( ox, oy, &n );
-		if (t > maxz) {
-			float fscale = n;
-			r = s[i].r * fscale;
-			g = s[i].g * fscale;
-			b = s[i].b * fscale;
-			maxz = t;
-		} 
+		float r=0, g=0, b=0;
+		float   maxz = -INF;
+		for(int i=0; i<SPHERES; i++) {
+			float   n;
+			float   t = s[i].hit( ox, oy, &n );
+			if (t > maxz) {
+				float fscale = n;
+				r = s[i].r * fscale;
+				g = s[i].g * fscale;
+				b = s[i].b * fscale;
+				maxz = t;
+			} 
+		}
+
+		ptr[offset*4 + 0] = (int)(r * 255);
+		ptr[offset*4 + 1] = (int)(g * 255);
+		ptr[offset*4 + 2] = (int)(b * 255);
+		ptr[offset*4 + 3] = 255;
 	}
-
-	ptr[offset*4 + 0] = (int)(r * 255);
-	ptr[offset*4 + 1] = (int)(g * 255);
-	ptr[offset*4 + 2] = (int)(b * 255);
-	ptr[offset*4 + 3] = 255;
 }
 
 void ppm_write(unsigned char* bitmap, int xdim,int ydim, FILE* fp)
@@ -104,10 +108,19 @@ int main(int argc, char* argv[])
 		temp_s[i].z = rnd( 2000.0f ) - 1000;
 		temp_s[i].radius = rnd( 200.0f ) + 40;
 	}
+	Sphere *temp_s_d;
+	cudaMalloc((void **)&temp_s_d, sizeof(Sphere) * SPHERES);
+	cudaMemcpy(temp_s_d, temp_s, sizeof(Sphere)*SPHERES, cudaMemcpyHostToDevice);
 	
 	bitmap=(unsigned char*)malloc(sizeof(unsigned char)*DIM*DIM*4);
-	for (x=0;x<DIM;x++) 
-		for (y=0;y<DIM;y++) kernel(x,y,temp_s,bitmap);
+	unsigned char *bitmap_d;
+	cudaMalloc((void **)&bitmap_d, sizeof(unsigned char)*DIM*DIM*4);
+	cudaMemcpy(bitmap_d, bitmap, sizeof(unsigned char)*DIM*DIM*4, cudaMemcpyHostToDevice);
+
+	kernel<<<DIM,THREADS>>>(temp_s_d,bitmap_d);
+	cudaDeviceSynchronize();
+	cudaMemcpy(temp_s, temp_s_d, sizeof(Sphere)*SPHERES, cudaMemcpyDeviceToHost);
+	cudaMemcpy(bitmap, bitmap_d, sizeof(unsigned char)*DIM*DIM*4, cudaMemcpyDeviceToHost);
 	ppm_write(bitmap,DIM,DIM,fp);
 
 	fclose(fp);
