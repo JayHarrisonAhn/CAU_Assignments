@@ -115,12 +115,14 @@ int main(int argc, char* argv[])
 #pragma omp parallel for num_threads(no_threads) shared(temp_s, bitmap) firstprivate(x,y) collapse(2)
 	for (x=0;x<DIM;x++) 
 		for (y=0;y<DIM;y++) kernel(x,y,temp_s,bitmap);
-	printf("Time : %.0fms\n", (double)(clock() - tStart));
+	clock_t tEnd = clock();
 	ppm_write(bitmap,DIM,DIM,fp);
 
 	fclose(fp);
 	free(bitmap);
 	free(temp_s);
+
+	printf("OpenMP (%d threads) ray tracing: %.0f ms\n", no_threads, (double)(tEnd-tStart));
 
 	return 0;
 }

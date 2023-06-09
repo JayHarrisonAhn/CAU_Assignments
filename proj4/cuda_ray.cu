@@ -98,6 +98,8 @@ int main(int argc, char* argv[])
 		no_threads=atoi(argv[1]);
 	}
 
+	clock_t tStart = clock();
+
 	Sphere *temp_s = (Sphere*)malloc( sizeof(Sphere) * SPHERES );
 	for (int i=0; i<SPHERES; i++) {
 		temp_s[i].r = rnd( 1.0f );
@@ -121,11 +123,16 @@ int main(int argc, char* argv[])
 	cudaDeviceSynchronize();
 	cudaMemcpy(temp_s, temp_s_d, sizeof(Sphere)*SPHERES, cudaMemcpyDeviceToHost);
 	cudaMemcpy(bitmap, bitmap_d, sizeof(unsigned char)*DIM*DIM*4, cudaMemcpyDeviceToHost);
+	clock_t tEnd = clock();
 	ppm_write(bitmap,DIM,DIM,fp);
 
 	fclose(fp);
 	free(bitmap);
 	free(temp_s);
+	cudaFree(bitmap_d);
+	cudaFree(temp_s_d);
+
+	printf("CUDA ray tracing: %.0f ms\n", (double)(tEnd-tStart));
 
 	return 0;
 }
