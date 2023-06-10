@@ -1,6 +1,6 @@
 실행
 ```
-pythonw -u .\Supervised_Learning.py > log.txt 2>&1
+pythonw -u .\Supervised_Learning.py | Out-File -FilePath .\log_0.txt
 ```
 
 종료

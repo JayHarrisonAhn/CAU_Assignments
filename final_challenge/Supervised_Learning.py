@@ -81,14 +81,32 @@ def model_selection(selection):
 
 
 
-def train(net1, labeled_loader, optimizer, criterion):
+def train(net1, labeled_loader, optimizer, criterion, scheduler):
+    # running_loss = 0.0
+    # running_corrects = 0
+
     net1.train()
     #Supervised_training
     for batch_idx, (inputs, targets) in enumerate(labeled_loader):
         if torch.cuda.is_available():
             inputs, targets = inputs.cuda(), targets.cuda()
         optimizer.zero_grad()
-        
+
+        with torch.set_grad_enabled(True):
+            outputs = model(inputs)
+            _, preds = torch.max(outputs, 1)
+            loss = criterion(outputs, targets)
+
+            # 학습 단계인 경우 역전파 + 최적화
+            loss.backward()
+            optimizer.step()
+        # scheduler.step()
+
+        # 통계
+        # running_loss += loss.item() * inputs.size(0)
+        # running_corrects += torch.sum(preds == labels.data)
+
+
         ####################
         #Write your Code
         #Model should be optimized based on given "targets"
@@ -132,7 +150,8 @@ if __name__ == "__main__":
 
 
 
-    batch_size = #Input the number of batch size
+    batch_size = 4 #Input the number of batch size
+    print(f"batch size = {batch_size}")
     if args.test == 'False':
         train_transform = transforms.Compose([
                     transforms.RandomResizedCrop(64, scale=(0.2, 1.0)),
@@ -158,8 +177,9 @@ if __name__ == "__main__":
         ])
         
 
-    model_name = #Input model name to use in the model_section class
+    model_name = "resnet" #Input model name to use in the model_section class
                  #e.g., 'resnet', 'vgg', 'mobilenet', 'custom'
+    print(f"model_name : {model_name}")
 
     if torch.cuda.is_available():
         model = model_selection(model_name).cuda()
@@ -177,15 +197,18 @@ if __name__ == "__main__":
     else :
         criterion = nn.CrossEntropyLoss()
     
-    epoch =  #Input the number of Epochs
-    optimizer = #Your optimizer here
-    #You may want to add a scheduler for your loss
+    epoch = 150 #Input the number of Epochs
+    optimizer = optim.SGD(model.parameters(), lr=0.001, momentum=0.9) #Your optimizer here
+    scheduler = optim.lr_scheduler.LambdaLR(optimizer=optimizer,
+                                            lr_lambda=lambda epoch: 0.95 ** epoch,
+                                            last_epoch=-1,
+                                            verbose=False)
     
     best_result = 0
     if args.test == 'False':
         assert params < 7.0, "Exceed the limit on the number of model parameters" 
         for e in range(0, epoch):
-            train(model, labeled_loader, optimizer, criterion)
+            train(model, labeled_loader, optimizer, criterion, scheduler)
             tmp_res = test(model, val_loader)
             # You can change the saving strategy, but you can't change the file name/path
             # If there's any difference to the file name/path, it will not be evaluated.
