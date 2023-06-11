@@ -122,7 +122,7 @@ int main(int argc, char* argv[])
 	free(bitmap);
 	free(temp_s);
 
-	printf("OpenMP (%d threads) ray tracing: %.0f ms\n", no_threads, (double)(tEnd-tStart));
+	printf("OpenMP (%d threads) ray tracing: %.0f ms\n", no_threads, (double)(tEnd-tStart)/CLOCKS_PER_SEC*1000);
 
 	return 0;
 }

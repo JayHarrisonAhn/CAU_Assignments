@@ -16,7 +16,7 @@ int main ()
 	}
 	pi = step * sum;
 	clock_t tEnd = clock();
-	printf("Execution Time : %dms\n", (int)(tEnd-tStart));
+	printf("Execution Time : %dms\n", (int)(tEnd-tStart)/CLOCKS_PER_SEC*1000);
 
 	printf("pi=%.10lf\n",pi);
 	return 0;

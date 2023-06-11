@@ -132,7 +132,7 @@ int main(int argc, char* argv[])
 	cudaFree(bitmap_d);
 	cudaFree(temp_s_d);
 
-	printf("CUDA ray tracing: %.0f ms\n", (double)(tEnd-tStart));
+	printf("CUDA ray tracing: %.0f ms\n", (double)(tEnd-tStart)/CLOCKS_PER_SEC*1000);
 
 	return 0;
 }
