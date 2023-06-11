@@ -100,7 +100,6 @@ int main(int argc, char* argv[])
 	clock_t tStart = clock();
 
 	Sphere *temp_s = (Sphere*)malloc( sizeof(Sphere) * SPHERES );
-#pragma omp parallel for num_threads(no_threads) shared(temp_s)
 	for (int i=0; i<SPHERES; i++) {
 		temp_s[i].r = rnd( 1.0f );
 		temp_s[i].g = rnd( 1.0f );
