@@ -28,7 +28,7 @@ int main ()
     thrust::transform(Y.begin(), Y.end(), Y.begin(), step * _1);
     double integral = thrust::reduce(Y.begin(), Y.end());
     clock_t tEnd = clock();
-    printf("Execution Time : %dms\n", (int)(tEnd-tStart)/CLOCKS_PER_SEC*1000);
+    printf("Execution Time : %fms\n", (double)(tEnd-tStart)/CLOCKS_PER_SEC*1000);
     printf("pi=%.10lf\n", integral);
     return 0;
 }
