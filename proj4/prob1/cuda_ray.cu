@@ -11,7 +11,6 @@
 #define rnd( x ) (x * rand() / RAND_MAX)
 #define INF 2e10f
 #define DIM 2048
-#define THREADS 1024
 
 struct Sphere {
     float   r,b,g;
@@ -31,33 +30,33 @@ struct Sphere {
 
 __global__ void kernel(Sphere* s, unsigned char* ptr)
 {
-	int x = blockIdx.x;
-	for(int y=threadIdx.x; y<DIM; y+=blockDim.x) {
-		int offset = x + y*DIM;
-		float ox = (x - DIM/2);
-		float oy = (y - DIM/2);
+	int x = blockIdx.x * blockDim.x + threadIdx.x;
+	int y = blockIdx.y * blockDim.y + threadIdx.y;
 
-		//printf("x:%d, y:%d, ox:%f, oy:%f\n",x,y,ox,oy);
+	int offset = x + y*DIM;
+	float ox = (x - DIM/2);
+	float oy = (y - DIM/2);
 
-		float r=0, g=0, b=0;
-		float   maxz = -INF;
-		for(int i=0; i<SPHERES; i++) {
-			float   n;
-			float   t = s[i].hit( ox, oy, &n );
-			if (t > maxz) {
-				float fscale = n;
-				r = s[i].r * fscale;
-				g = s[i].g * fscale;
-				b = s[i].b * fscale;
-				maxz = t;
-			} 
-		}
+	//printf("x:%d, y:%d, ox:%f, oy:%f\n",x,y,ox,oy);
 
-		ptr[offset*4 + 0] = (int)(r * 255);
-		ptr[offset*4 + 1] = (int)(g * 255);
-		ptr[offset*4 + 2] = (int)(b * 255);
-		ptr[offset*4 + 3] = 255;
+	float r=0, g=0, b=0;
+	float   maxz = -INF;
+	for(int i=0; i<SPHERES; i++) {
+		float   n;
+		float   t = s[i].hit( ox, oy, &n );
+		if (t > maxz) {
+			float fscale = n;
+			r = s[i].r * fscale;
+			g = s[i].g * fscale;
+			b = s[i].b * fscale;
+			maxz = t;
+		} 
 	}
+
+	ptr[offset*4 + 0] = (int)(r * 255);
+	ptr[offset*4 + 1] = (int)(g * 255);
+	ptr[offset*4 + 2] = (int)(b * 255);
+	ptr[offset*4 + 3] = 255;
 }
 
 void ppm_write(unsigned char* bitmap, int xdim,int ydim, FILE* fp)
@@ -119,7 +118,9 @@ int main(int argc, char* argv[])
 	cudaMalloc((void **)&bitmap_d, sizeof(unsigned char)*DIM*DIM*4);
 	cudaMemcpy(bitmap_d, bitmap, sizeof(unsigned char)*DIM*DIM*4, cudaMemcpyHostToDevice);
 
-	kernel<<<DIM,THREADS>>>(temp_s_d,bitmap_d);
+	dim3 numOfBlocks(DIM/32, DIM/32);
+	dim3 numOfThreads(32, 32);
+	kernel<<<numOfBlocks,numOfThreads>>>(temp_s_d,bitmap_d);
 	cudaDeviceSynchronize();
 	cudaMemcpy(temp_s, temp_s_d, sizeof(Sphere)*SPHERES, cudaMemcpyDeviceToHost);
 	cudaMemcpy(bitmap, bitmap_d, sizeof(unsigned char)*DIM*DIM*4, cudaMemcpyDeviceToHost);
