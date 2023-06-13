@@ -64,16 +64,17 @@ class Identity(nn.Module):
 ####################
 def model_selection(selection):
     if selection == "resnet":
-        model = models.resnet18()
+        models.resnet18()
+        model = models.resnet18(weights='IMAGENET1K_V1')
         model.conv1 =  nn.Conv2d(3, 64, kernel_size=3,stride=1, padding=1, bias=False)
         model.layer4 = Identity()
         model.fc = nn.Linear(256, 50)
     elif selection == "vgg":
-        model = models.vgg11_bn()
+        model = models.vgg11_bn(weights='IMAGENET1K_V1')
         model.features = nn.Sequential(*list(model.features.children())[:-7])
         model.classifier = nn.Sequential( nn.Linear(in_features=25088, out_features=50, bias=True))
     elif selection == "mobilenet":
-        model = models.mobilenet_v2()
+        model = models.mobilenet_v2(weights='IMAGENET1K_V2')
         model.classifier = nn.Sequential(nn.Linear(in_features=1280, out_features=50, bias=True))
     elif  selection =='custom':
         model = Custom_model()
@@ -86,6 +87,7 @@ def train(net1, labeled_loader, optimizer, criterion, scheduler):
     # running_corrects = 0
 
     net1.train()
+    loss_total = 0
     #Supervised_training
     for batch_idx, (inputs, targets) in enumerate(labeled_loader):
         if torch.cuda.is_available():
@@ -99,18 +101,10 @@ def train(net1, labeled_loader, optimizer, criterion, scheduler):
 
             # 학습 단계인 경우 역전파 + 최적화
             loss.backward()
+            loss_total += loss
             optimizer.step()
-        # scheduler.step()
-
-        # 통계
-        # running_loss += loss.item() * inputs.size(0)
-        # running_corrects += torch.sum(preds == labels.data)
-
-
-        ####################
-        #Write your Code
-        #Model should be optimized based on given "targets"
-        ####################
+    
+    print("[epoch loss={:.2f}]".format(loss_total / labeled_loader.batch_size))
         
         
 
@@ -150,7 +144,7 @@ if __name__ == "__main__":
 
 
 
-    batch_size = 4 #Input the number of batch size
+    batch_size = 32 #Input the number of batch size
     print(f"batch size = {batch_size}")
     if args.test == 'False':
         train_transform = transforms.Compose([
@@ -165,10 +159,21 @@ if __name__ == "__main__":
                 ])
         
         dataset = CustomDataset(root = './data/Supervised_Learning/labeled', transform = train_transform)
-        labeled_loader = DataLoader(dataset, batch_size=batch_size, shuffle=True, num_workers=4, pin_memory=True)
+        datasets = []
+        for i in range(4):
+            train_transform_i = transforms.Compose([
+                transforms.RandomResizedCrop(64, scale=(0.2, 1.0)),
+                transforms.RandomHorizontalFlip(),
+                transforms.ToTensor(),
+                transforms.Normalize((0.5, 0.5, 0.5), (0.5, 0.5, 0.5))
+            ])
+            datasets_i = CustomDataset(root = './data/Supervised_Learning/labeled', transform = train_transform_i)
+            datasets.append(datasets_i)
+        dataset = torch.utils.data.ConcatDataset(datasets)
+        labeled_loader = DataLoader(dataset, batch_size=batch_size, shuffle=True, num_workers=8, pin_memory=True)
         
         dataset = CustomDataset(root = './data/Supervised_Learning/val', transform = test_transform)
-        val_loader = DataLoader(dataset, batch_size=batch_size, shuffle=False, num_workers=2, pin_memory=True)
+        val_loader = DataLoader(dataset, batch_size=batch_size, shuffle=False, num_workers=8, pin_memory=True)
 
     else :
         test_transform = transforms.Compose([
@@ -177,7 +182,7 @@ if __name__ == "__main__":
         ])
         
 
-    model_name = "resnet" #Input model name to use in the model_section class
+    model_name = "mobilenet" #Input model name to use in the model_section class
                  #e.g., 'resnet', 'vgg', 'mobilenet', 'custom'
     print(f"model_name : {model_name}")
 
@@ -197,8 +202,9 @@ if __name__ == "__main__":
     else :
         criterion = nn.CrossEntropyLoss()
     
-    epoch = 150 #Input the number of Epochs
-    optimizer = optim.SGD(model.parameters(), lr=0.001, momentum=0.9) #Your optimizer here
+    epoch = 50
+    # optimizer = optim.Adam(model.parameters(), lr= 0.0003)
+    optimizer = optim.SGD(model.parameters(), lr=0.0003, momentum=0.9)
     scheduler = optim.lr_scheduler.LambdaLR(optimizer=optimizer,
                                             lr_lambda=lambda epoch: 0.95 ** epoch,
                                             last_epoch=-1,
@@ -209,6 +215,7 @@ if __name__ == "__main__":
         assert params < 7.0, "Exceed the limit on the number of model parameters" 
         for e in range(0, epoch):
             train(model, labeled_loader, optimizer, criterion, scheduler)
+            scheduler.step()
             tmp_res = test(model, val_loader)
             # You can change the saving strategy, but you can't change the file name/path
             # If there's any difference to the file name/path, it will not be evaluated.

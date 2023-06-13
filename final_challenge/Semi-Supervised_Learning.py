@@ -84,23 +84,23 @@ class Identity(nn.Module):
 ####################
 def model_selection(selection):
     if selection == "resnet":
-        model = models.resnet18()
+        model = models.resnet18(weights='IMAGENET1K_V1')
         model.conv1 =  nn.Conv2d(3, 64, kernel_size=3,stride=1, padding=1, bias=False)
         model.layer4 = Identity()
         model.fc = nn.Linear(256, 10)
     elif selection == "vgg":
-        model = models.vgg11_bn()
+        model = models.vgg11_bn(weights='IMAGENET1K_V1')
         model.features = nn.Sequential(*list(model.features.children())[:-7])
         model.classifier = nn.Sequential( nn.Linear(in_features=25088, out_features=10, bias=True))
     elif selection == "mobilenet":
-        model = models.mobilenet_v2()
+        model = models.mobilenet_v2(weights='IMAGENET1K_V2')
         model.classifier = nn.Sequential( nn.Linear(in_features=1280, out_features=10, bias=True))
     elif  selection =='custom':
         model = Custom_model()
     return model
 
 
-def cotrain(net1,net2, labeled_loader, unlabled_loader, optimizer1_1, optimizer1_2, optimizer2_1, optimizer2_2, criterion):
+def cotrain(net1,net2, labeled_loader, unlabled_loader, optimizer1_1, optimizer1_2, optimizer2_1, optimizer2_2, criterion_1, criterion_2):
     #The inputs are as below.
     #{First model, Second model, Loader for labeled dataset with labels, Loader for unlabeled dataset that comes without any labels, 
     net1.train()
@@ -109,18 +109,46 @@ def cotrain(net1,net2, labeled_loader, unlabled_loader, optimizer1_1, optimizer1
     correct = 0
     total = 0
     k = 0.8
+    loss_total = 0
     #labeled_training
     for batch_idx, (inputs, targets) in enumerate(labeled_loader):
         inputs, targets = inputs.cuda(), targets.cuda()
         optimizer1_1.zero_grad()
         optimizer2_1.zero_grad()
-####################
-#Add your code here
-####################
+
+        with torch.set_grad_enabled(True):
+            outputs_1 = net1(inputs)
+            outputs_2 = net2(inputs)
+
+            loss_1 = criterion_1(outputs_1, targets)
+            loss_2 = criterion_2(outputs_1, outputs_2)
+            loss = loss_1 + loss_2 * 0.2
+            loss.backward()
+            loss_total += loss
+            optimizer1_1.step()
+            optimizer2_1.step()
+
+
 
     #unlabeled_training    
     for batch_idx, inputs in enumerate(unlabled_loader):
         inputs = inputs.cuda()
+        optimizer1_2.zero_grad()
+        optimizer2_2.zero_grad()
+
+        with torch.set_grad_enabled(True):
+            outputs_1 = net1(inputs)
+            outputs_2 = net2(inputs)
+
+            loss_2 = criterion_2(outputs_1, outputs_2)
+
+            loss = loss_2 * 0.2
+            loss.backward()
+            loss_total += loss
+            optimizer1_2.step()
+            optimizer2_2.step()
+        
+    print("[epoch loss={:.2f}]".format(loss_total / (labeled_loader.batch_size + unlabled_loader.batch_size)))
 
 ####################
 #Add your code here
@@ -163,7 +191,7 @@ if __name__ == "__main__":
     args = parser.parse_args()
 
 
-    batch_size =  #Input the number of batch size
+    batch_size = 32 #Input the number of batch size
     if args.test == 'False':
         train_transform = transforms.Compose([
                     transforms.RandomResizedCrop(64, scale=(0.2, 1.0)),
@@ -183,7 +211,7 @@ if __name__ == "__main__":
         unlabeled_loader = DataLoader(dataset, batch_size=batch_size, shuffle=True, num_workers=4, pin_memory=True)
         
         dataset = CustomDataset(root = './data/Semi-Supervised_Learning/val', transform = test_transform)
-        val_loader = DataLoader(dataset, batch_size=batch_size, shuffle=False, num_workers=2, pin_memory=True)
+        val_loader = DataLoader(dataset, batch_size=batch_size, shuffle=True, num_workers=2, pin_memory=True)
 
     else :
         test_transform = transforms.Compose([
@@ -196,8 +224,8 @@ if __name__ == "__main__":
 
     
     
-    model_sel_1 =  #write your choice of model (e.g., 'vgg')
-    model_sel_2 =  #write your choice of model (e.g., 'resnet)
+    model_sel_1 = 'mobilenet' #write your choice of model (e.g., 'vgg')
+    model_sel_2 = 'resnet' #write your choice of model (e.g., 'resnet)
 
 
     model1 = model_selection(model_sel_1)
@@ -216,27 +244,36 @@ if __name__ == "__main__":
     
     
     if torch.cuda.is_available():
-        criterion = nn.CrossEntropyLoss().cuda()
+        criterion_1 = nn.CrossEntropyLoss().cuda()
     else :
-        criterion = nn.CrossEntropyLoss()    
+        criterion_1 = nn.CrossEntropyLoss()    
+
+    if torch.cuda.is_available():
+        criterion_2 = nn.MSELoss().cuda()
+    else :
+        criterion_2 = nn.MSELoss()    
         
-    
-    optimizer1_1 = #Optimizer for model 1 in labeled training
-    optimizer2_1 = #Optimizer for model 2 in labeled training 
+    # optimizer1_1 = optim.Adam(model1.parameters(), lr= 0.0005) #Optimizer for model 1 in labeled training
+    optimizer1_1 = optim.SGD(model1.parameters(), lr= 0.0003, momentum=0.9)
+    # optimizer2_1 = optim.Adam(model1.parameters(), lr= 0.0005) #Optimizer for model 2 in labeled training 
+    optimizer2_1 = optim.SGD(model1.parameters(), lr= 0.0003, momentum=0.9)
 
-    optimizer1_2 = #Optimizer for model 1 in unlabeled training
-    optimizer2_2 = #Optimizer for model 2 in unlabeled training
+    optimizer1_2 = optim.Adam(model2.parameters(), lr= 0.0005) #Optimizer for model 1 in unlabeled training
+    # optimizer1_2 = optim.SGD(model1.parameters(), lr= 0.0003, momentum=0.9)
+    optimizer2_2 = optim.Adam(model2.parameters(), lr= 0.0005) #Optimizer for model 2 in unlabeled training
+    # optimizer2_2 = optim.SGD(model1.parameters(), lr= 0.0003, momentum=0.9)
 
-    epoch = #Input the number of epochs
+    epoch = 50 #Input the number of epochs
 
     if args.test == 'False':
+        print(f"model:{model_sel_1}, {model_sel_2}")
         assert params_1 < 7.0, "Exceed the limit on the number of model_1 parameters" 
         assert params_2 < 7.0, "Exceed the limit on the number of model_2 parameters" 
 
         best_result_1 = 0
         best_result_2 = 0
         for e in range(0, epoch):
-            cotrain(model1, model2, labeled_loader, unlabeled_loader, optimizer1_1, optimizer1_2, optimizer2_1, optimizer2_2, criterion)
+            cotrain(model1, model2, labeled_loader, unlabeled_loader, optimizer1_1, optimizer1_2, optimizer2_1, optimizer2_2, criterion_1, criterion_2)
             tmp_res_1 = test(model1, val_loader)
             # You can change the saving strategy, but you can't change file name/path for each model
             print ("[{}th epoch, model_1] ACC : {}".format(e, tmp_res_1))
