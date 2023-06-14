@@ -42,8 +42,9 @@ class CustomDataset(Dataset):
 class Custom_model(nn.Module):
     def __init__(self):
         super(Custom_model, self).__init__()
-        #place your layers
-        #CNN, MLP and etc.
+        model = models.mobilenet_v2(weights='IMAGENET1K_V2')
+        model.classifier = nn.Sequential(nn.Linear(in_features=1280, out_features=50, bias=True))
+        self.mobilenet = model
 
     def forward(self, input):
         #place for your model
@@ -83,11 +84,11 @@ def model_selection(selection):
 
 
 def train(net1, labeled_loader, optimizer, criterion, scheduler):
-    # running_loss = 0.0
-    # running_corrects = 0
+    running_loss = 0.0
+    running_corrects = 0
+    running_total = 0
 
     net1.train()
-    loss_total = 0
     #Supervised_training
     for batch_idx, (inputs, targets) in enumerate(labeled_loader):
         if torch.cuda.is_available():
@@ -96,15 +97,17 @@ def train(net1, labeled_loader, optimizer, criterion, scheduler):
 
         with torch.set_grad_enabled(True):
             outputs = model(inputs)
-            _, preds = torch.max(outputs, 1)
+            _, predicted = outputs.max(1)
+            running_total += targets.size(0)
+            running_corrects += predicted.eq(targets).sum().item()
             loss = criterion(outputs, targets)
-
-            # 학습 단계인 경우 역전파 + 최적화
             loss.backward()
-            loss_total += loss
+            running_loss += loss
             optimizer.step()
+    # SGD,Adam : scheduler.step()
+    # ReduceLROnPlateau :scheduler.step(running_loss)
     scheduler.step()
-    print("[epoch loss={:.2f}]".format(loss_total / labeled_loader.batch_size))
+    print(f"[train_loss={running_loss:.2f}, train_score={100. * running_corrects / running_total : .2f}]")
         
         
 
@@ -144,7 +147,7 @@ if __name__ == "__main__":
 
 
 
-    batch_size = 32 #Input the number of batch size
+    batch_size = 16 #Input the number of batch size
     print(f"batch size = {batch_size}")
     if args.test == 'False':
         train_transform = transforms.Compose([
@@ -191,11 +194,14 @@ if __name__ == "__main__":
     else :
         criterion = nn.CrossEntropyLoss()
     
-    epoch = 50
-    # optimizer = optim.Adam(model.parameters(), lr= 0.0003)
-    optimizer = optim.SGD(model.parameters(), lr=0.0003, momentum=0.9)
+    epoch = 100
+    optimizer = optim.Adam(model.parameters(), lr= 0.0001)
+    # scheduler = optim.lr_scheduler.ReduceLROnPlateau(optimizer=optimizer,
+    #                                                  mode='min', 
+    #                                                  patience=3,
+    #                                                  threshold=1e-2)
     scheduler = optim.lr_scheduler.LambdaLR(optimizer=optimizer,
-                                            lr_lambda=lambda epoch: 0.95 ** epoch,
+                                            lr_lambda=lambda epoch: 0.93 ** epoch,
                                             last_epoch=-1,
                                             verbose=False)
     

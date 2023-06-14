@@ -103,13 +103,13 @@ def model_selection(selection):
 def cotrain(net1,net2, labeled_loader, unlabled_loader, optimizer1_1, optimizer1_2, optimizer2_1, optimizer2_2, criterion_1, criterion_2):
     #The inputs are as below.
     #{First model, Second model, Loader for labeled dataset with labels, Loader for unlabeled dataset that comes without any labels, 
+    running_loss = 0.0
+    running_corrects_1 = 0
+    running_corrects_2 = 0
+    running_total = 0
+
     net1.train()
     net2.train()
-    train_loss = 0
-    correct = 0
-    total = 0
-    k = 0.8
-    loss_total = 0
     #labeled_training
     for batch_idx, (inputs, targets) in enumerate(labeled_loader):
         inputs, targets = inputs.cuda(), targets.cuda()
@@ -124,7 +124,11 @@ def cotrain(net1,net2, labeled_loader, unlabled_loader, optimizer1_1, optimizer1
             loss_2 = criterion_2(outputs_1, outputs_2)
             loss = loss_1 + loss_2 * 0.2
             loss.backward()
-            loss_total += loss
+            running_total += targets.size(0)
+            _, predicted_1 = outputs_1.max(1)
+            _, predicted_2 = outputs_2.max(1)
+            running_corrects_1 += predicted_1.eq(targets).sum().item()
+            running_corrects_2 += predicted_2.eq(targets).sum().item()
             optimizer1_1.step()
             optimizer2_1.step()
 
@@ -144,11 +148,11 @@ def cotrain(net1,net2, labeled_loader, unlabled_loader, optimizer1_1, optimizer1
 
             loss = loss_2 * 0.2
             loss.backward()
-            loss_total += loss
+            running_loss += loss
             optimizer1_2.step()
             optimizer2_2.step()
         
-    print("[epoch loss={:.2f}]".format(loss_total / (labeled_loader.batch_size + unlabled_loader.batch_size)))
+    print(f"[epoch loss={running_loss:.2f}, train_score_1={100. * running_corrects_1 / running_total : .2f}, train_score_2={100. * running_corrects_2 / running_total : .2f}]")
 
 ####################
 #Add your code here
@@ -194,7 +198,8 @@ if __name__ == "__main__":
     batch_size = 32 #Input the number of batch size
     if args.test == 'False':
         train_transform = transforms.Compose([
-                    transforms.AutoAugment(transforms.AutoAugmentPolicy.IMAGENET),
+                    transforms.RandomResizedCrop(64, scale=(0.2, 1.0)),
+                    transforms.RandomHorizontalFlip(),
                     transforms.ToTensor(),
                     transforms.Normalize((0.5, 0.5, 0.5), (0.5, 0.5, 0.5))
                 ])
@@ -204,34 +209,13 @@ if __name__ == "__main__":
                 ])
         
         dataset = CustomDataset(root = './data/Semi-Supervised_Learning/labeled', transform = train_transform)
-        # Dataset 수정금지로 보류중
-        # datasets = [dataset]
-        # for i in range(4):
-        #     train_transform_i = transforms.Compose([
-        #         transforms.ToTensor(),
-        #         transforms.Normalize((0.5, 0.5, 0.5), (0.5, 0.5, 0.5))
-        #     ])
-        #     datasets_i = CustomDataset(root = './data/Semi-Supervised_Learning/labeled', transform = train_transform_i)
-        #     datasets.append(datasets_i)
-        # dataset = torch.utils.data.ConcatDataset(datasets)
         labeled_loader = DataLoader(dataset, batch_size=batch_size, shuffle=True, num_workers=4, pin_memory=True)
 
         dataset = CustomDataset_Nolabel(root = './data/Semi-Supervised_Learning/unlabeled', transform = train_transform)
-        # Dataset 수정금지로 보류중
-        # datasets = [dataset]
-        # for i in range(4):
-        #     train_transform_i = transforms.Compose([
-        #         transforms.AutoAugment(transforms.AutoAugmentPolicy.IMAGENET),
-        #         transforms.ToTensor(),
-        #         transforms.Normalize((0.5, 0.5, 0.5), (0.5, 0.5, 0.5))
-        #     ])
-        #     datasets_i = CustomDataset_Nolabel(root = './data/Semi-Supervised_Learning/unlabeled', transform = train_transform_i)
-        #     datasets.append(datasets_i)
-        # dataset = torch.utils.data.ConcatDataset(datasets)
         unlabeled_loader = DataLoader(dataset, batch_size=batch_size, shuffle=True, num_workers=4, pin_memory=True)
         
         dataset = CustomDataset(root = './data/Semi-Supervised_Learning/val', transform = test_transform)
-        val_loader = DataLoader(dataset, batch_size=batch_size, shuffle=True, num_workers=2, pin_memory=True)
+        val_loader = DataLoader(dataset, batch_size=batch_size, shuffle=False, num_workers=2, pin_memory=True)
 
     else :
         test_transform = transforms.Compose([
@@ -273,17 +257,31 @@ if __name__ == "__main__":
     else :
         criterion_2 = nn.MSELoss()    
         
-    # optimizer1_1 = optim.Adam(model1.parameters(), lr= 0.0005) #Optimizer for model 1 in labeled training
-    optimizer1_1 = optim.SGD(model1.parameters(), lr= 0.0003, momentum=0.9)
-    # optimizer2_1 = optim.Adam(model1.parameters(), lr= 0.0005) #Optimizer for model 2 in labeled training 
-    optimizer2_1 = optim.SGD(model1.parameters(), lr= 0.0003, momentum=0.9)
+    optimizer1_1 = optim.Adam(model1.parameters(), lr= 0.0002)
+    # optimizer1_1 = optim.SGD(model1.parameters(), lr= 0.0003, momentum=0.9)
+    optimizer2_1 = optim.Adam(model1.parameters(), lr= 0.0002)
+    # optimizer2_1 = optim.SGD(model1.parameters(), lr= 0.0003, momentum=0.9)
+    optimizer1_2 = optim.Adam(model2.parameters(), lr= 0.0008)
+    optimizer2_2 = optim.Adam(model2.parameters(), lr= 0.0008)
 
-    optimizer1_2 = optim.Adam(model2.parameters(), lr= 0.0005) #Optimizer for model 1 in unlabeled training
-    # optimizer1_2 = optim.SGD(model1.parameters(), lr= 0.0003, momentum=0.9)
-    optimizer2_2 = optim.Adam(model2.parameters(), lr= 0.0005) #Optimizer for model 2 in unlabeled training
-    # optimizer2_2 = optim.SGD(model1.parameters(), lr= 0.0003, momentum=0.9)
+    scheduler1_1 = optim.lr_scheduler.LambdaLR(optimizer=optimizer1_1,
+                                            lr_lambda=lambda epoch: 0.95 ** epoch,
+                                            last_epoch=-1,
+                                            verbose=False)
+    scheduler2_1 = optim.lr_scheduler.LambdaLR(optimizer=optimizer2_1,
+                                            lr_lambda=lambda epoch: 0.95 ** epoch,
+                                            last_epoch=-1,
+                                            verbose=False)
+    scheduler1_2 = optim.lr_scheduler.LambdaLR(optimizer=optimizer1_2,
+                                            lr_lambda=lambda epoch: 0.95 ** epoch,
+                                            last_epoch=-1,
+                                            verbose=False)
+    scheduler2_2 = optim.lr_scheduler.LambdaLR(optimizer=optimizer2_2,
+                                            lr_lambda=lambda epoch: 0.95 ** epoch,
+                                            last_epoch=-1,
+                                            verbose=False)
 
-    epoch = 50 #Input the number of epochs
+    epoch = 100 #Input the number of epochs
 
     if args.test == 'False':
         print(f"model:{model_sel_1}, {model_sel_2}")
@@ -294,6 +292,10 @@ if __name__ == "__main__":
         best_result_2 = 0
         for e in range(0, epoch):
             cotrain(model1, model2, labeled_loader, unlabeled_loader, optimizer1_1, optimizer1_2, optimizer2_1, optimizer2_2, criterion_1, criterion_2)
+            scheduler1_1.step()
+            scheduler2_1.step()
+            scheduler1_2.step()
+            scheduler2_2.step()
             tmp_res_1 = test(model1, val_loader)
             # You can change the saving strategy, but you can't change file name/path for each model
             print ("[{}th epoch, model_1] ACC : {}".format(e, tmp_res_1))
