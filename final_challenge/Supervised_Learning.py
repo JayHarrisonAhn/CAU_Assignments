@@ -103,7 +103,7 @@ def train(net1, labeled_loader, optimizer, criterion, scheduler):
             loss.backward()
             loss_total += loss
             optimizer.step()
-    
+    scheduler.step()
     print("[epoch loss={:.2f}]".format(loss_total / labeled_loader.batch_size))
         
         
@@ -159,21 +159,10 @@ if __name__ == "__main__":
                 ])
         
         dataset = CustomDataset(root = './data/Supervised_Learning/labeled', transform = train_transform)
-        datasets = []
-        for i in range(4):
-            train_transform_i = transforms.Compose([
-                transforms.RandomResizedCrop(64, scale=(0.2, 1.0)),
-                transforms.RandomHorizontalFlip(),
-                transforms.ToTensor(),
-                transforms.Normalize((0.5, 0.5, 0.5), (0.5, 0.5, 0.5))
-            ])
-            datasets_i = CustomDataset(root = './data/Supervised_Learning/labeled', transform = train_transform_i)
-            datasets.append(datasets_i)
-        dataset = torch.utils.data.ConcatDataset(datasets)
-        labeled_loader = DataLoader(dataset, batch_size=batch_size, shuffle=True, num_workers=8, pin_memory=True)
+        labeled_loader = DataLoader(dataset, batch_size=batch_size, shuffle=True, num_workers=4, pin_memory=True)
         
         dataset = CustomDataset(root = './data/Supervised_Learning/val', transform = test_transform)
-        val_loader = DataLoader(dataset, batch_size=batch_size, shuffle=False, num_workers=8, pin_memory=True)
+        val_loader = DataLoader(dataset, batch_size=batch_size, shuffle=False, num_workers=2, pin_memory=True)
 
     else :
         test_transform = transforms.Compose([
@@ -215,7 +204,6 @@ if __name__ == "__main__":
         assert params < 7.0, "Exceed the limit on the number of model parameters" 
         for e in range(0, epoch):
             train(model, labeled_loader, optimizer, criterion, scheduler)
-            scheduler.step()
             tmp_res = test(model, val_loader)
             # You can change the saving strategy, but you can't change the file name/path
             # If there's any difference to the file name/path, it will not be evaluated.

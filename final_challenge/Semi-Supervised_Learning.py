@@ -194,8 +194,7 @@ if __name__ == "__main__":
     batch_size = 32 #Input the number of batch size
     if args.test == 'False':
         train_transform = transforms.Compose([
-                    transforms.RandomResizedCrop(64, scale=(0.2, 1.0)),
-                    transforms.RandomHorizontalFlip(),
+                    transforms.AutoAugment(transforms.AutoAugmentPolicy.IMAGENET),
                     transforms.ToTensor(),
                     transforms.Normalize((0.5, 0.5, 0.5), (0.5, 0.5, 0.5))
                 ])
@@ -205,9 +204,30 @@ if __name__ == "__main__":
                 ])
         
         dataset = CustomDataset(root = './data/Semi-Supervised_Learning/labeled', transform = train_transform)
+        # Dataset 수정금지로 보류중
+        # datasets = [dataset]
+        # for i in range(4):
+        #     train_transform_i = transforms.Compose([
+        #         transforms.ToTensor(),
+        #         transforms.Normalize((0.5, 0.5, 0.5), (0.5, 0.5, 0.5))
+        #     ])
+        #     datasets_i = CustomDataset(root = './data/Semi-Supervised_Learning/labeled', transform = train_transform_i)
+        #     datasets.append(datasets_i)
+        # dataset = torch.utils.data.ConcatDataset(datasets)
         labeled_loader = DataLoader(dataset, batch_size=batch_size, shuffle=True, num_workers=4, pin_memory=True)
 
         dataset = CustomDataset_Nolabel(root = './data/Semi-Supervised_Learning/unlabeled', transform = train_transform)
+        # Dataset 수정금지로 보류중
+        # datasets = [dataset]
+        # for i in range(4):
+        #     train_transform_i = transforms.Compose([
+        #         transforms.AutoAugment(transforms.AutoAugmentPolicy.IMAGENET),
+        #         transforms.ToTensor(),
+        #         transforms.Normalize((0.5, 0.5, 0.5), (0.5, 0.5, 0.5))
+        #     ])
+        #     datasets_i = CustomDataset_Nolabel(root = './data/Semi-Supervised_Learning/unlabeled', transform = train_transform_i)
+        #     datasets.append(datasets_i)
+        # dataset = torch.utils.data.ConcatDataset(datasets)
         unlabeled_loader = DataLoader(dataset, batch_size=batch_size, shuffle=True, num_workers=4, pin_memory=True)
         
         dataset = CustomDataset(root = './data/Semi-Supervised_Learning/val', transform = test_transform)
