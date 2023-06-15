@@ -14,8 +14,8 @@ conda install pytorch::pytorch torchvision torchaudio -c pytorch
 ## Final_challenge
 ### Execution
 ```bash
-pm2 start .\Supervised_Learning.py --interpreter python --no-autorestart
-pm2 start .\Semi-Supervised_Learning.py --interpreter python --no-autorestart
+pm2 start .\Supervised_Learning.py --interpreter pythonw --no-autorestart
+pm2 start .\Semi-Supervised_Learning.py --interpreter pythonw --no-autorestart
 ```
 
 ### Submit Log

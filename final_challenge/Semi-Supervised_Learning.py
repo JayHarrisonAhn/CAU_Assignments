@@ -66,17 +66,49 @@ class CustomDataset_Nolabel(Dataset):
 #If you want to use your own custom model
 #Write your code here
 ####################
+class Custom_model_1(nn.Module):
+    def __init__(self):
+        super(Custom_model_1, self).__init__()
+        model = models.vgg11_bn(weights='IMAGENET1K_V1')
+        model.features = nn.Sequential(*list(model.features.children())[:-7])
+        model.classifier = nn.Sequential( nn.Linear(in_features=25088, out_features=10, bias=True))
+        self.vgg = model
+
+        model = models.mobilenet_v2(weights='IMAGENET1K_V2')
+        model.classifier = nn.Sequential(nn.Linear(in_features=1280, out_features=10, bias=True))
+        self.mobilenet = model
+
+        self.models = [self.vgg, self.mobilenet]
+
+    def forward(self, input):
+        return sum([self.mobilenet(input)*0.33, self.vgg(input)*0.66])
+    
+    def train(self, mode: bool = True):
+        super().train(mode=mode)
+        for model in self.models:
+            model.train(mode=mode)
+
 class Custom_model(nn.Module):
     def __init__(self):
         super(Custom_model, self).__init__()
-        #place your layers
-        #CNN, MLP and etc.
+        model = models.resnet18(weights='IMAGENET1K_V1')
+        model.layer4 = Identity()
+        model.fc = nn.Linear(256, 10)
+        self.resnet = model
+
+        model = models.mobilenet_v2(weights='IMAGENET1K_V2')
+        model.classifier = nn.Sequential(nn.Linear(in_features=1280, out_features=10, bias=True))
+        self.mobilenet = model
+
+        self.models = [self.resnet, self.mobilenet]
 
     def forward(self, input):
-        #place for your model
-        #Input: 3* Width * Height
-        #Output: Probability of 10 class label
-        return predicted_label
+        return sum([self.mobilenet(input)*0.33, self.resnet(input)*0.66])
+    
+    def train(self, mode: bool = True):
+        super().train(mode=mode)
+        for model in self.models:
+            model.train(mode=mode)
 
 
 class Identity(nn.Module):
@@ -103,6 +135,8 @@ def model_selection(selection):
         model.classifier = nn.Sequential( nn.Linear(in_features=1280, out_features=10, bias=True))
     elif  selection =='custom':
         model = Custom_model()
+    elif selection =='custom1':
+        model = Custom_model_1()
     return model
 
 
@@ -120,42 +154,51 @@ def cotrain(net1,net2, labeled_loader, unlabled_loader, optimizer1_1, optimizer1
     for batch_idx, (inputs, targets) in enumerate(labeled_loader):
         inputs, targets = inputs.cuda(), targets.cuda()
         optimizer1_1.zero_grad()
-        optimizer2_1.zero_grad()
+        optimizer1_2.zero_grad()
 
         with torch.set_grad_enabled(True):
             outputs_1 = net1(inputs)
-            outputs_2 = net2(inputs)
-
             loss_1 = criterion_1(outputs_1, targets)
-            loss_2 = criterion_2(outputs_1, outputs_2)
-            loss = loss_1 + loss_2 * 0.2
-            loss.backward()
-            running_total += targets.size(0)
+            running_loss += loss_1
+            loss_1.backward()
+
+            outputs_2 = net2(inputs)
+            loss_2 = criterion_1(outputs_2, targets)
+            running_loss += loss_2
+            loss_2.backward()
+
             _, predicted_1 = outputs_1.max(1)
             _, predicted_2 = outputs_2.max(1)
             running_corrects_1 += predicted_1.eq(targets).sum().item()
             running_corrects_2 += predicted_2.eq(targets).sum().item()
+            running_total += targets.size(0)
             optimizer1_1.step()
-            optimizer2_1.step()
+            optimizer1_2.step()
 
 
 
     #unlabeled_training    
     for batch_idx, inputs in enumerate(unlabled_loader):
         inputs = inputs.cuda()
-        optimizer1_2.zero_grad()
+        optimizer2_1.zero_grad()
         optimizer2_2.zero_grad()
 
         with torch.set_grad_enabled(True):
             outputs_1 = net1(inputs)
             outputs_2 = net2(inputs)
+            outputs = torch.zeros_like(outputs_1)
+            outputs += outputs_1
+            outputs += outputs_2
+            outputs = torch.argmax(outputs, dim=1)
 
-            loss_2 = criterion_2(outputs_1, outputs_2)
-
-            loss = loss_2 * 0.2
-            loss.backward()
-            running_loss += loss
-            optimizer1_2.step()
+            loss_1 = criterion_1(outputs_1, outputs)
+            loss_1.backward()
+            loss_2 = criterion_1(outputs_2, outputs)
+            loss_2.backward()
+            
+            # running_loss += loss_1
+            # running_loss += loss_2
+            optimizer2_1.step()
             optimizer2_2.step()
         
     print(f"[loss={running_loss:.2f}, score_1={100. * running_corrects_1 / running_total:.2f}, score_2={100. * running_corrects_2 / running_total:.2f}]")
@@ -234,8 +277,8 @@ if __name__ == "__main__":
 
     
     
-    model_sel_1 = 'mobilenet' #write your choice of model (e.g., 'vgg')
-    model_sel_2 = 'resnet' #write your choice of model (e.g., 'resnet)
+    model_sel_1 = 'custom' #write your choice of model (e.g., 'vgg')
+    model_sel_2 = 'custom1' #write your choice of model (e.g., 'resnet)
 
 
     model1 = model_selection(model_sel_1)
@@ -263,12 +306,10 @@ if __name__ == "__main__":
     else :
         criterion_2 = nn.MSELoss()    
         
-    optimizer1_1 = optim.Adam(model1.parameters(), lr= 0.0002)
-    # optimizer1_1 = optim.SGD(model1.parameters(), lr= 0.0003, momentum=0.9)
-    optimizer2_1 = optim.Adam(model1.parameters(), lr= 0.0002)
-    # optimizer2_1 = optim.SGD(model1.parameters(), lr= 0.0003, momentum=0.9)
-    optimizer1_2 = optim.Adam(model2.parameters(), lr= 0.0008)
-    optimizer2_2 = optim.Adam(model2.parameters(), lr= 0.0008)
+    optimizer1_1 = optim.Adam(model1.parameters(), lr= 0.0001)
+    optimizer2_1 = optim.Adam(model1.parameters(), lr= 0.0001)
+    optimizer1_2 = optim.Adam(model2.parameters(), lr= 0.0002)
+    optimizer2_2 = optim.Adam(model2.parameters(), lr= 0.0002)
 
     scheduler1_1 = optim.lr_scheduler.LambdaLR(optimizer=optimizer1_1,
                                             lr_lambda=lambda epoch: 0.95 ** epoch,
