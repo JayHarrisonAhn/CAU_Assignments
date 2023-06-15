@@ -49,15 +49,27 @@ class CustomDataset(Dataset):
 class Custom_model(nn.Module):
     def __init__(self):
         super(Custom_model, self).__init__()
+        model = models.resnet18(weights='IMAGENET1K_V1')
+        model.layer4 = Identity()
+        model.fc = nn.Linear(256, 50)
+        self.resnet = model
+
         model = models.mobilenet_v2(weights='IMAGENET1K_V2')
         model.classifier = nn.Sequential(nn.Linear(in_features=1280, out_features=50, bias=True))
         self.mobilenet = model
 
+        self.models = [self.resnet, self.mobilenet]
+
     def forward(self, input):
-        #place for your model
-        #Input: 3* Width * Height
-        #Output: Probability of 50 class label
-        return predicted_label
+        outputs = []
+        for model in self.models:
+            outputs.append(model(input))
+        return sum(outputs) / len(outputs)
+    
+    def train(self, mode: bool = True):
+        super().train(mode=mode)
+        for model in self.models:
+            model.train(mode=mode)
 
 
 
@@ -72,7 +84,6 @@ class Identity(nn.Module):
 ####################
 def model_selection(selection):
     if selection == "resnet":
-        models.resnet18()
         model = models.resnet18(weights='IMAGENET1K_V1')
         model.conv1 =  nn.Conv2d(3, 64, kernel_size=3,stride=1, padding=1, bias=False)
         model.layer4 = Identity()
@@ -90,9 +101,15 @@ def model_selection(selection):
 
 
 
-def train(net1, labeled_loader, optimizer, criterion, scheduler):
-    running_loss = 0.0
-    running_corrects = 0
+def train(net1, labeled_loader, optimizer, criterion):
+    optimizer_mob, optimizer_res = optimizer
+
+    total_loss_mob = 0
+    total_loss_res = 0
+
+    running_corrects_mob = 0
+    running_corrects_res = 0
+
     running_total = 0
 
     net1.train()
@@ -100,21 +117,34 @@ def train(net1, labeled_loader, optimizer, criterion, scheduler):
     for batch_idx, (inputs, targets) in enumerate(labeled_loader):
         if torch.cuda.is_available():
             inputs, targets = inputs.cuda(), targets.cuda()
-        optimizer.zero_grad()
+        optimizer_mob.zero_grad()
+        optimizer_res.zero_grad()
 
         with torch.set_grad_enabled(True):
-            outputs = model(inputs)
-            _, predicted = outputs.max(1)
+            outputs_mob = net1.mobilenet(inputs)
+            outputs_res = net1.resnet(inputs)
+
+            _, predicted_mob = outputs_mob.max(1)
+            _, predicted_res = outputs_res.max(1)
+
+            running_corrects_mob += predicted_mob.eq(targets).sum().item()
+            running_corrects_res += predicted_res.eq(targets).sum().item()
+
+            loss_mob = criterion(outputs_mob, targets)
+            loss_res = criterion(outputs_res, targets)
+
+            loss_mob.backward()
+            loss_res.backward()
+
+            total_loss_mob += loss_mob
+            total_loss_res += loss_res
+
             running_total += targets.size(0)
-            running_corrects += predicted.eq(targets).sum().item()
-            loss = criterion(outputs, targets)
-            loss.backward()
-            running_loss += loss
-            optimizer.step()
-    # SGD,Adam : scheduler.step()
-    # ReduceLROnPlateau :scheduler.step(running_loss)
-    scheduler.step()
-    print(f"[train_loss={running_loss:.2f}, train_score={100. * running_corrects / running_total : .2f}]")
+
+            optimizer_mob.step()
+            optimizer_res.step()
+
+    print(f"[loss_mob={total_loss_mob:.2f}, loss_res={total_loss_res:.2f}, score_mob={100. * running_corrects_mob / running_total : .2f}, score_res={100. * running_corrects_res / running_total : .2f}]")
         
         
 
@@ -181,7 +211,7 @@ if __name__ == "__main__":
         ])
         
 
-    model_name = "mobilenet" #Input model name to use in the model_section class
+    model_name = "custom" #Input model name to use in the model_section class
                  #e.g., 'resnet', 'vgg', 'mobilenet', 'custom'
     print(f"model_name : {model_name}")
 
@@ -202,12 +232,14 @@ if __name__ == "__main__":
         criterion = nn.CrossEntropyLoss()
     
     epoch = 100
-    optimizer = optim.Adam(model.parameters(), lr= 0.0001)
-    # scheduler = optim.lr_scheduler.ReduceLROnPlateau(optimizer=optimizer,
-    #                                                  mode='min', 
-    #                                                  patience=3,
-    #                                                  threshold=1e-2)
-    scheduler = optim.lr_scheduler.LambdaLR(optimizer=optimizer,
+    optimizer_mobilenet = optim.Adam(model.parameters(), lr= 0.0001)
+    scheduler_mobilenet = optim.lr_scheduler.LambdaLR(optimizer=optimizer_mobilenet,
+                                            lr_lambda=lambda epoch: 0.93 ** epoch,
+                                            last_epoch=-1,
+                                            verbose=False)
+    
+    optimizer_resnet = optim.Adam(model.parameters(), lr= 0.00015)
+    scheduler_resnet = optim.lr_scheduler.LambdaLR(optimizer=optimizer_resnet,
                                             lr_lambda=lambda epoch: 0.93 ** epoch,
                                             last_epoch=-1,
                                             verbose=False)
@@ -216,7 +248,11 @@ if __name__ == "__main__":
     if args.test == 'False':
         assert params < 7.0, "Exceed the limit on the number of model parameters" 
         for e in range(0, epoch):
-            train(model, labeled_loader, optimizer, criterion, scheduler)
+            train(model, labeled_loader, (optimizer_mobilenet, optimizer_resnet), criterion)
+            scheduler_mobilenet.step()
+            scheduler_resnet.step()
+            print(f"[val_score_mob={test(model.mobilenet, val_loader)}, ", end="")
+            print(f"val_score_res={test(model.resnet, val_loader)}]")
             tmp_res = test(model, val_loader)
             # You can change the saving strategy, but you can't change the file name/path
             # If there's any difference to the file name/path, it will not be evaluated.
