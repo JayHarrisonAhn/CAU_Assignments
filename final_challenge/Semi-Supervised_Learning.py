@@ -9,7 +9,13 @@ import os
 from PIL import Image
 import argparse
 
-
+import random
+seed = 2023
+random.seed(seed)
+torch.manual_seed(seed)
+torch.cuda.manual_seed_all(seed)
+torch.backends.cudnn.benchmark = False
+torch.backends.cudnn.deterministic = True
 
 
 class CustomDataset(Dataset):
@@ -85,7 +91,7 @@ class Identity(nn.Module):
 def model_selection(selection):
     if selection == "resnet":
         model = models.resnet18(weights='IMAGENET1K_V1')
-        model.conv1 =  nn.Conv2d(3, 64, kernel_size=3,stride=1, padding=1, bias=False)
+        # model.conv1 =  nn.Conv2d(3, 64, kernel_size=3,stride=1, padding=1, bias=False)
         model.layer4 = Identity()
         model.fc = nn.Linear(256, 10)
     elif selection == "vgg":
@@ -152,7 +158,7 @@ def cotrain(net1,net2, labeled_loader, unlabled_loader, optimizer1_1, optimizer1
             optimizer1_2.step()
             optimizer2_2.step()
         
-    print(f"[epoch loss={running_loss:.2f}, train_score_1={100. * running_corrects_1 / running_total : .2f}, train_score_2={100. * running_corrects_2 / running_total : .2f}]")
+    print(f"[loss={running_loss:.2f}, score_1={100. * running_corrects_1 / running_total:.2f}, score_2={100. * running_corrects_2 / running_total:.2f}]")
 
 ####################
 #Add your code here
