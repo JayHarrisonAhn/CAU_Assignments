@@ -232,13 +232,13 @@ if __name__ == "__main__":
         criterion = nn.CrossEntropyLoss()
     
     epoch = 100
-    optimizer_mobilenet = optim.Adam(model.parameters(), lr= 0.0001)
+    optimizer_mobilenet = optim.Adam(model.mobilenet.parameters(), lr= 0.0001)
     scheduler_mobilenet = optim.lr_scheduler.LambdaLR(optimizer=optimizer_mobilenet,
                                             lr_lambda=lambda epoch: 0.93 ** epoch,
                                             last_epoch=-1,
                                             verbose=False)
     
-    optimizer_resnet = optim.Adam(model.parameters(), lr= 0.00015)
+    optimizer_resnet = optim.Adam(model.resnet.parameters(), lr= 0.00015)
     scheduler_resnet = optim.lr_scheduler.LambdaLR(optimizer=optimizer_resnet,
                                             lr_lambda=lambda epoch: 0.93 ** epoch,
                                             last_epoch=-1,
@@ -251,8 +251,7 @@ if __name__ == "__main__":
             train(model, labeled_loader, (optimizer_mobilenet, optimizer_resnet), criterion)
             scheduler_mobilenet.step()
             scheduler_resnet.step()
-            print(f"[val_score_mob={test(model.mobilenet, val_loader)}, ", end="")
-            print(f"val_score_res={test(model.resnet, val_loader)}]")
+            print(f"[val_score_mob={test(model.mobilenet, val_loader)}, val_score_res={test(model.resnet, val_loader)}]")
             tmp_res = test(model, val_loader)
             # You can change the saving strategy, but you can't change the file name/path
             # If there's any difference to the file name/path, it will not be evaluated.
