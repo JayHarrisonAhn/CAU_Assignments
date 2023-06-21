@@ -19,9 +19,9 @@ pm2 start .\Semi-Supervised_Learning.py --interpreter pythonw --no-autorestart
 ```
 
 ### Submit Log
-#### 20230616
-- Supervised : TBA
-- Semi-Supervised : TBA
+#### Final
+- Supervised : 79.44% (1st in class)
+- Semi-Supervised : 90.4% (2nd in class)
 #### 20230615
 - Supervised : 74.12%
 - Semi-Supervised : 87.2%
