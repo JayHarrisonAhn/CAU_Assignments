@@ -1,0 +1,54 @@
+Car 3: trying to enter
+Car 3: just entered
+Car 6: trying to enter
+Car 6: just entered
+Car 4: trying to enter
+Car 4: just entered
+Car 8: trying to enter
+Car 8: just entered
+Car 2: trying to enter
+Car 2: just entered
+Car 5: trying to enter
+Car 5: just entered
+Car 7: trying to enter
+Car 7: just entered
+Car 1: trying to enter
+Car 6:                                     about to leave
+Car 1: just entered
+Car 6:                                     have been left
+Car 10: trying to enter
+Car 9: trying to enter
+Car 3:                                     about to leave
+Car 3:                                     have been left
+Car 10: just entered
+Car 10:                                     about to leave
+Car 10:                                     have been left
+Car 9: just entered
+Car 1:                                     about to leave
+Car 1:                                     have been left
+Car 10: trying to enter
+Car 10: just entered
+Car 6: trying to enter
+Car 9:                                     about to leave
+Car 9:                                     have been left
+Car 6: just entered
+Car 5:                                     about to leave
+Car 5:                                     have been left
+Car 5: trying to enter
+Car 5: just entered
+Car 1: trying to enter
+Car 7:                                     about to leave
+Car 7:                                     have been left
+Car 1: just entered
+Car 3: trying to enter
+Car 4:                                     about to leave
+Car 4:                                     have been left
+Car 3: just entered
+Car 1:                                     about to leave
+Car 1:                                     have been left
+Car 2:                                     about to leave
+Car 2:                                     have been left
+Car 8:                                     about to leave
+Car 8:                                     have been left
+
+Process finished with exit code 130 (interrupted by signal 2: SIGINT)
